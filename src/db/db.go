@@ -5,6 +5,8 @@ import (
 
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/jinzhu/gorm"
+
+	// setup mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/joho/godotenv"
 )
@@ -14,6 +16,7 @@ var (
 	err error
 )
 
+// Init setup db
 func Init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -25,13 +28,15 @@ func Init() {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&entity.User{})
+	db.AutoMigrate(&entity.User{}, &entity.Reservation{}, &entity.ReservationSlot{}, &entity.Slot{})
 }
 
+// GetDB returns db
 func GetDB() *gorm.DB {
 	return db
 }
 
+// Close the database
 func Close() {
 	defer db.Close()
 }
