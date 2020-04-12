@@ -72,6 +72,27 @@ func verifyCredential(c *gin.Context) (interface{}, error) {
 	return signin(input)
 }
 
+func login(input entity.UserInput) (p *entity.UserAuth, err error) {
+	email := input.Email
+	password := input.Password
+
+	var us service.UserService
+	storedUser, err := us.FindByEmail(email)
+	if err != nil {
+		return &entity.UserAuth{}, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword(storedUser.Password, []byte(password)); err != nil {
+		return &entity.UserAuth{}, jwt.ErrFailedAuthentication
+	}
+
+	return &entity.UserAuth{
+		ID:       storedUser.ID,
+		Email:    storedUser.Email,
+		Password: storedUser.Password,
+	}, nil
+}
+
 func signin(input entity.UserInput) (*entity.UserAuth, error) {
 	username := input.UserName
 	email := input.Email
@@ -91,27 +112,6 @@ func signin(input entity.UserInput) (*entity.UserAuth, error) {
 		ID:       u.ID,
 		Email:    email,
 		Password: hashedPassword,
-	}, nil
-}
-
-func login(input entity.UserInput) (p *entity.UserAuth, err error) {
-	email := input.Email
-	password := input.Password
-
-	var us service.UserService
-	storedUser, err := us.FindByEmail(email)
-	if err != nil {
-		return &entity.UserAuth{}, err
-	}
-
-	if err := bcrypt.CompareHashAndPassword(storedUser.Password, []byte(password)); err != nil {
-		return &entity.UserAuth{}, jwt.ErrFailedAuthentication
-	}
-
-	return &entity.UserAuth{
-		ID:       storedUser.ID,
-		Email:    storedUser.Email,
-		Password: storedUser.Password,
 	}, nil
 }
 
