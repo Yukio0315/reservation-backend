@@ -6,6 +6,7 @@ import (
 	"github.com/Yukio0315/reservation-backend/src/db"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // UserService struct
@@ -68,4 +69,20 @@ func (s UserService) FindUserProfile(id entity.ID) (entity.UserProfile, error) {
 		Email:               u.Email,
 		ReservationProfiles: reservationProfiles,
 	}, nil
+}
+
+// UpdatePassword update password from the given id
+func (s UserService) UpdatePassword(id entity.ID, password entity.Password) (err error) {
+	db := db.Init()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password.Password), 10)
+	if err != nil {
+		return err
+	}
+
+	var u entity.User
+	db.Where("id = ?", id.ID).First(&u)
+	if err := db.Model(u).Update("password", hashedPassword).Error; err != nil {
+		return err
+	}
+	return nil
 }

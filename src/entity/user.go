@@ -18,6 +18,11 @@ type ID struct {
 	ID uint `uri:"id" binding:"required"`
 }
 
+// Password represent user password
+type Password struct {
+	Password string `json:"password" binding:"required"`
+}
+
 // NewUser represent new user
 type NewUser struct {
 	UserName string `json:"username"`

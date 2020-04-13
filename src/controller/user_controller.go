@@ -17,11 +17,30 @@ func (uc UserController) Show(c *gin.Context) {
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.JSON(400, err)
 	}
-	p, err := uc.s.FindUserProfile(id)
 
+	p, err := uc.s.FindUserProfile(id)
 	if err != nil {
 		c.AbortWithStatus(404)
-	} else {
-		c.JSON(200, p)
+		return
 	}
+	c.JSON(200, p)
+}
+
+// UpdatePassword controller update password
+func (uc UserController) UpdatePassword(c *gin.Context) {
+	id := entity.ID{}
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(400, err)
+	}
+
+	password := entity.Password{}
+	if err := c.ShouldBindJSON(&password); err != nil {
+		c.JSON(400, err)
+	}
+
+	if err := uc.s.UpdatePassword(id, password); err != nil {
+		c.AbortWithStatus(404)
+		return
+	}
+	c.Status(200)
 }
