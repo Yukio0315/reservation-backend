@@ -3,6 +3,7 @@ package server
 import (
 	"os"
 
+	"github.com/Yukio0315/reservation-backend/src/controller"
 	"github.com/Yukio0315/reservation-backend/src/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +26,7 @@ func router() *gin.Engine {
 
 	authMiddleware := middleware.AuthMiddleware()
 
-	// userCtrl := controller.UserController{}
+	userCtrl := controller.UserController{}
 	// reservationCtrl := controller.ReservationController{}
 
 	r.POST("/signin", authMiddleware.LoginHandler)
@@ -40,16 +41,16 @@ func router() *gin.Engine {
 		// 	r.GET("/", reservationCtrl.Add)
 		// }
 
-		// u := auth.Group("/users/:id")
-		// {
-		// u.GET("", userCtrl.Show)
-		// u.PATCH("/password", userCtrl.UpdatePassword)
-		// u.PATCH("/user-name", userCtrl.UpdateUserName)
-		// u.PATCH("/email", userCtrl.UpdateEmail)
-		// u.DELETE("/cancel", userCtrl.Cancel)
-		// u.DELETE("/delete", userCtrl.Delete)
-		// u.DELETE("/logout", userCtrl.Logout)
-		// }
+		u := auth.Group("/users/:id")
+		{
+			u.GET("", userCtrl.Show)
+			// u.PATCH("/password", userCtrl.UpdatePassword)
+			// u.PATCH("/user-name", userCtrl.UpdateUserName)
+			// u.PATCH("/email", userCtrl.UpdateEmail)
+			// u.DELETE("/cancel", userCtrl.Cancel)
+			// u.DELETE("/delete", userCtrl.Delete)
+			// u.DELETE("/logout", userCtrl.Logout)
+		}
 	}
 
 	return r

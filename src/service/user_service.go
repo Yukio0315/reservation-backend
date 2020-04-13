@@ -1,8 +1,11 @@
 package service
 
 import (
+	"time"
+
 	"github.com/Yukio0315/reservation-backend/src/db"
 	"github.com/Yukio0315/reservation-backend/src/entity"
+	"github.com/jinzhu/gorm"
 )
 
 // UserService struct
@@ -36,5 +39,33 @@ func (s UserService) FindByEmail(email string) (entity.UserAuth, error) {
 		ID:       u.ID,
 		Email:    u.Email,
 		Password: u.Password,
+	}, nil
+}
+
+// FindUserProfile return user and reservation
+func (s UserService) FindUserProfile(id entity.ID) (entity.UserProfile, error) {
+	db := db.Init()
+
+	var u entity.User
+	if err := db.Preload("Reservations", "end > ?", time.Now(), func(db *gorm.DB) *gorm.DB {
+		return db.Order("reservations.start DESC")
+	}).Where("id = ?", id.ID).First(&u).Error; err != nil {
+		return entity.UserProfile{}, err
+	}
+
+	var reservationProfiles []entity.ReservationProfile
+	for _, r := range u.Reservations {
+		rp := entity.ReservationProfile{
+			Start: r.Start,
+			End:   r.End,
+		}
+		reservationProfiles = append(reservationProfiles, rp)
+	}
+
+	return entity.UserProfile{
+		CreatedAt:           u.CreatedAt,
+		UserName:            u.UserName,
+		Email:               u.Email,
+		ReservationProfiles: reservationProfiles,
 	}, nil
 }

@@ -23,18 +23,15 @@ func AuthMiddleware() *jwt.GinJWTMiddleware {
 	}
 
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Realm:         "reservation zone",
-		Key:           []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
-		Timeout:       time.Hour,
-		MaxRefresh:    time.Hour,
-		IdentityKey:   identityKey,
-		PayloadFunc:   convertStructToMapClaims,
-		Authenticator: verifyCredential,
-		Authorizator:  isAuthorized,
-		Unauthorized:  failedAuthorization,
-		TokenLookup:   "header: Authorization, query: token",
-		TokenHeadName: "Bearer",
-		TimeFunc:      time.Now,
+		Realm:           "reservation zone",
+		Key:             []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
+		MaxRefresh:      time.Hour,
+		IdentityKey:     identityKey,
+		PayloadFunc:     convertStructToMapClaims,
+		IdentityHandler: handleIdentity,
+		Authenticator:   verifyCredential,
+		Authorizator:    isAuthorized,
+		Unauthorized:    failedAuthorization,
 	})
 
 	if err != nil {
@@ -47,7 +44,7 @@ func AuthMiddleware() *jwt.GinJWTMiddleware {
 func convertStructToMapClaims(data interface{}) jwt.MapClaims {
 	if v, ok := data.(*entity.UserAuth); ok {
 		return jwt.MapClaims{
-			identityKey: v.Email,
+			identityKey: v.ID,
 		}
 	}
 	return jwt.MapClaims{}
@@ -55,9 +52,7 @@ func convertStructToMapClaims(data interface{}) jwt.MapClaims {
 
 func handleIdentity(c *gin.Context) interface{} {
 	claims := jwt.ExtractClaims(c)
-	return &entity.User{
-		Email: claims[identityKey].(string),
-	}
+	return claims[identityKey].(float64)
 }
 
 func verifyCredential(c *gin.Context) (interface{}, error) {
@@ -116,11 +111,11 @@ func signin(input entity.UserInput) (*entity.UserAuth, error) {
 }
 
 func isAuthorized(data interface{}, c *gin.Context) bool {
-	var ID uint
-	if err := c.ShouldBindUri(&ID); err != nil {
+	var id entity.ID
+	if err := c.ShouldBindUri(&id); err != nil {
 		return false
 	}
-	if v, ok := data.(*entity.UserAuth); ok && v.ID == ID {
+	if v, ok := data.(float64); ok && uint(v) == id.ID {
 		return true
 	}
 	return false

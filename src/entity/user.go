@@ -15,7 +15,7 @@ type User struct {
 
 // ID represent user id
 type ID struct {
-	ID uint `form:"id" binding:"required"`
+	ID uint `uri:"id" binding:"required"`
 }
 
 // NewUser represent new user
@@ -37,4 +37,12 @@ type UserInput struct {
 	UserName string `form:"username" json:"username"`
 	Email    string `form:"email" json:"email" binding:"required"`
 	Password string `form:"password" json:"password" binding:"required"`
+}
+
+// UserProfile is represent user profile
+type UserProfile struct {
+	CreatedAt           time.Time            `json:"createdAt" binding:"required"`
+	UserName            string               `json:"username" binding:"required"`
+	Email               string               `json:"email" binding:"required"`
+	ReservationProfiles []ReservationProfile `json:"reservationProfile"`
 }
