@@ -13,7 +13,7 @@ import (
 type UserService struct{}
 
 // CreateModel create new user
-func (s UserService) CreateModel(username string, email string, password []byte) (entity.User, error) {
+func (s UserService) CreateModel(username entity.UserName, email entity.Email, password entity.HashedPassword) (entity.User, error) {
 	db := db.Init()
 
 	u := entity.User{UserName: username, Email: email, Password: password}
@@ -26,31 +26,43 @@ func (s UserService) CreateModel(username string, email string, password []byte)
 	return u, nil
 }
 
-// FindByEmail find a user by email
-func (s UserService) FindByEmail(email string) (entity.UserAuth, error) {
+// FindByEmail find a user auth information by email
+func (s UserService) FindByEmail(email entity.Email) (entity.UserIDAndPassword, error) {
 	db := db.Init()
 
 	var u entity.User
 	if err := db.Where("email = ?", email).First(&u).Error; err != nil {
-		return entity.UserAuth{}, err
+		return entity.UserIDAndPassword{}, err
 	}
 	defer db.Close()
 
-	return entity.UserAuth{
+	return entity.UserIDAndPassword{
 		ID:       u.ID,
-		Email:    u.Email,
 		Password: u.Password,
 	}, nil
 }
 
-// FindUserProfile return user and reservation
-func (s UserService) FindUserProfile(id entity.ID) (entity.UserProfile, error) {
+// FindPasswordByID find a user password by id
+func (s UserService) FindPasswordByID(id entity.ID) (entity.HashedPassword, error) {
+	db := db.Init()
+
+	var u entity.User
+	if err := db.Where("id = ?", id).First(&u).Error; err != nil {
+		return entity.HashedPassword{}, err
+	}
+	defer db.Close()
+
+	return u.Password, nil
+}
+
+// FindUserProfileByID return user and reservation
+func (s UserService) FindUserProfileByID(id entity.ID) (entity.UserProfile, error) {
 	db := db.Init()
 
 	var u entity.User
 	if err := db.Preload("Reservations", "end > ?", time.Now(), func(db *gorm.DB) *gorm.DB {
 		return db.Order("reservations.start DESC")
-	}).Where("id = ?", id.ID).First(&u).Error; err != nil {
+	}).Where("id = ?", id).First(&u).Error; err != nil {
 		return entity.UserProfile{}, err
 	}
 
@@ -72,15 +84,15 @@ func (s UserService) FindUserProfile(id entity.ID) (entity.UserProfile, error) {
 }
 
 // UpdatePassword update password from the given id
-func (s UserService) UpdatePassword(id entity.ID, password entity.Password) (err error) {
+func (s UserService) UpdatePassword(id entity.ID, plainPassword entity.PlainPassword) (err error) {
 	db := db.Init()
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password.Password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), 10)
 	if err != nil {
 		return err
 	}
 
 	var u entity.User
-	db.Where("id = ?", id.ID).First(&u)
+	db.Where("id = ?", id).First(&u)
 	if err := db.Model(u).Update("password", hashedPassword).Error; err != nil {
 		return err
 	}

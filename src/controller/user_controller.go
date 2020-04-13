@@ -4,7 +4,10 @@ import (
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
+
+//TODO: change status code
 
 // UserController type
 type UserController struct {
@@ -13,12 +16,12 @@ type UserController struct {
 
 // Show controlles user information & reservation
 func (uc UserController) Show(c *gin.Context) {
-	id := entity.ID{}
+	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.JSON(400, err)
 	}
 
-	p, err := uc.s.FindUserProfile(id)
+	p, err := uc.s.FindUserProfileByID(id.ID)
 	if err != nil {
 		c.AbortWithStatus(404)
 		return
@@ -26,21 +29,55 @@ func (uc UserController) Show(c *gin.Context) {
 	c.JSON(200, p)
 }
 
-// UpdatePassword controller update password
+// UpdatePassword controls updating password
 func (uc UserController) UpdatePassword(c *gin.Context) {
-	id := entity.ID{}
+	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.JSON(400, err)
 	}
 
-	password := entity.Password{}
-	if err := c.ShouldBindJSON(&password); err != nil {
+	passwords := entity.UserNewOldPasswords{}
+	if err := c.ShouldBindJSON(&passwords); err != nil {
 		c.JSON(400, err)
 	}
 
-	if err := uc.s.UpdatePassword(id, password); err != nil {
+	p, err := uc.s.FindPasswordByID(id.ID)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword(p, []byte(passwords.OldPassword)); err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if err := uc.s.UpdatePassword(id.ID, passwords.NewPassword); err != nil {
 		c.AbortWithStatus(404)
 		return
 	}
+
 	c.Status(200)
+	// TODO: send email
+}
+
+// PasswordReset controls resetting password
+func (uc UserController) PasswordReset(c *gin.Context) {
+	input := entity.UserInputMailPassword{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	u, err := uc.s.FindByEmail(input.Email)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if err := uc.s.UpdatePassword(u.ID, input.Password); err != nil {
+		c.AbortWithStatus(404)
+	}
+	c.Status(200)
+	// TODO: send email
 }

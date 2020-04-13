@@ -27,7 +27,7 @@ func AuthMiddleware() *jwt.GinJWTMiddleware {
 		Key:             []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
 		MaxRefresh:      time.Hour,
 		IdentityKey:     identityKey,
-		PayloadFunc:     convertStructToMapClaims,
+		PayloadFunc:     convertUserIDToMapClaims,
 		IdentityHandler: handleIdentity,
 		Authenticator:   verifyCredential,
 		Authorizator:    isAuthorized,
@@ -41,8 +41,8 @@ func AuthMiddleware() *jwt.GinJWTMiddleware {
 	return authMiddleware
 }
 
-func convertStructToMapClaims(data interface{}) jwt.MapClaims {
-	if v, ok := data.(*entity.UserAuth); ok {
+func convertUserIDToMapClaims(data interface{}) jwt.MapClaims {
+	if v, ok := data.(*entity.UserIDAndPassword); ok {
 		return jwt.MapClaims{
 			identityKey: v.ID,
 		}
@@ -67,55 +67,47 @@ func verifyCredential(c *gin.Context) (interface{}, error) {
 	return signin(input)
 }
 
-func login(input entity.UserInput) (p *entity.UserAuth, err error) {
-	email := input.Email
-	password := input.Password
-
+func login(input entity.UserInput) (p *entity.UserIDAndPassword, err error) {
 	var us service.UserService
-	storedUser, err := us.FindByEmail(email)
+	storedUser, err := us.FindByEmail(input.Email)
 	if err != nil {
-		return &entity.UserAuth{}, err
+		return &entity.UserIDAndPassword{}, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword(storedUser.Password, []byte(password)); err != nil {
-		return &entity.UserAuth{}, jwt.ErrFailedAuthentication
+	if err := bcrypt.CompareHashAndPassword(storedUser.Password, []byte(input.Password)); err != nil {
+		return &entity.UserIDAndPassword{}, jwt.ErrFailedAuthentication
 	}
 
-	return &entity.UserAuth{
+	return &entity.UserIDAndPassword{
 		ID:       storedUser.ID,
-		Email:    storedUser.Email,
 		Password: storedUser.Password,
 	}, nil
 }
 
-func signin(input entity.UserInput) (*entity.UserAuth, error) {
-	username := input.UserName
-	email := input.Email
-
+func signin(input entity.UserInput) (*entity.UserIDAndPassword, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
 	if err != nil {
-		return &entity.UserAuth{}, err
+		return &entity.UserIDAndPassword{}, err
 	}
 
 	var us service.UserService
-	u, err := us.CreateModel(username, email, hashedPassword)
+	u, err := us.CreateModel(input.UserName, input.Email, hashedPassword)
 	if err != nil {
-		return &entity.UserAuth{}, err
+		return &entity.UserIDAndPassword{}, err
 	}
 
-	return &entity.UserAuth{
+	return &entity.UserIDAndPassword{
 		ID:       u.ID,
-		Email:    email,
 		Password: hashedPassword,
 	}, nil
 }
 
 func isAuthorized(data interface{}, c *gin.Context) bool {
-	var id entity.ID
+	var id entity.UserID
 	if err := c.ShouldBindUri(&id); err != nil {
 		return false
 	}
-	if v, ok := data.(float64); ok && uint(v) == id.ID {
+	if v, ok := data.(float64); ok && v == float64(id.ID) {
 		return true
 	}
 	return false

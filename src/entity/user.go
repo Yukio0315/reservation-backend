@@ -2,52 +2,78 @@ package entity
 
 import "time"
 
+// ID is uint
+type ID uint
+
+// HashedPassword is slice byte
+type HashedPassword []byte
+
+// PlainPassword is string
+type PlainPassword string
+
+// UserName is string
+type UserName string
+
+// Email is string
+type Email string
+
 // User represent user information
 type User struct {
-	ID           uint      `gorm:"primary_key" json:"id" binding:"required"`
-	CreatedAt    time.Time `json:"createdAt" binding:"required"`
-	UpdatedAt    time.Time `json:"updatedAt" binding:"required"`
-	UserName     string    `gorm:"varchar(20);not null" json:"username" binding:"required"`
-	Email        string    `gorm:"type:varchar(100);unique_index;not null" json:"email" binding:"required"`
-	Password     []byte    `gorm:"not null" json:"password" binding:"required"`
+	ID           ID `gorm:"primary_key"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	UserName     UserName       `gorm:"varchar(20);not null"`
+	Email        Email          `gorm:"type:varchar(100);unique_index;not null"`
+	Password     HashedPassword `gorm:"not null"`
 	Reservations Reservations
 }
 
-// ID represent user id
-type ID struct {
-	ID uint `uri:"id" binding:"required"`
+// UserID represent user id
+type UserID struct {
+	ID ID `uri:"id" binding:"required"`
 }
 
-// Password represent user password
-type Password struct {
-	Password string `json:"password" binding:"required"`
+// UserPlainPassword represent user password
+type UserPlainPassword struct {
+	PlainPassword PlainPassword `json:"password" binding:"required"`
+}
+
+// UserNewOldPasswords represent old password and new password
+type UserNewOldPasswords struct {
+	OldPassword PlainPassword `json:"oldPassword" binding:"required"`
+	NewPassword PlainPassword `json:"newPassword" binding:"required"`
 }
 
 // NewUser represent new user
 type NewUser struct {
-	UserName string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	UserName UserName
+	Email    Email
+	Password PlainPassword
 }
 
-// UserAuth represent necessary information for authentication
-type UserAuth struct {
-	ID       uint   `form:"id" binding:"required"`
-	Email    string `form:"email" json:"email" binding:"required"`
-	Password []byte `form:"password" json:"password" binding:"required"`
+// UserIDAndPassword represent user id and password
+type UserIDAndPassword struct {
+	ID       ID
+	Password HashedPassword
 }
 
 // UserInput represent user input
 type UserInput struct {
-	UserName string `form:"username" json:"username"`
-	Email    string `form:"email" json:"email" binding:"required"`
-	Password string `form:"password" json:"password" binding:"required"`
+	UserName UserName      `json:"username"`
+	Email    Email         `json:"email" binding:"required"`
+	Password PlainPassword `json:"password" binding:"required"`
+}
+
+// UserInputMailPassword represent user input
+type UserInputMailPassword struct {
+	Email    Email         `json:"email" binding:"required"`
+	Password PlainPassword `json:"password" binding:"required"`
 }
 
 // UserProfile is represent user profile
 type UserProfile struct {
-	CreatedAt           time.Time            `json:"createdAt" binding:"required"`
-	UserName            string               `json:"username" binding:"required"`
-	Email               string               `json:"email" binding:"required"`
+	CreatedAt           time.Time            `json:"createdAt"`
+	UserName            UserName             `json:"username"`
+	Email               Email                `json:"email"`
 	ReservationProfiles []ReservationProfile `json:"reservationProfile"`
 }
