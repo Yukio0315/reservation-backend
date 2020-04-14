@@ -78,6 +78,7 @@ func (s UserService) FindUserProfileByID(id entity.ID) (entity.UserProfile, erro
 	}).Where("id = ?", id).First(&u).Error; err != nil {
 		return entity.UserProfile{}, err
 	}
+	defer db.Close()
 
 	var reservationProfiles []entity.ReservationProfile
 	for _, r := range u.Reservations {
@@ -109,6 +110,8 @@ func (s UserService) UpdatePassword(id entity.ID, plainPassword entity.PlainPass
 	if err := db.Model(u).Update("password", hashedPassword).Error; err != nil {
 		return err
 	}
+	defer db.Close()
+
 	return nil
 }
 
@@ -121,6 +124,8 @@ func (s UserService) UpdateUserNameByID(id entity.ID, userName entity.UserName) 
 	if err := db.Model(u).Update("user_name", userName).Error; err != nil {
 		return err
 	}
+	defer db.Close()
+
 	return nil
 }
 
@@ -133,5 +138,20 @@ func (s UserService) UpdateEmailByID(id entity.ID, email entity.Email) (err erro
 	if err := db.Model(u).Update("email", email).Error; err != nil {
 		return err
 	}
+	defer db.Close()
+
+	return nil
+}
+
+// DeleteByID update email by ID
+func (s UserService) DeleteByID(id entity.ID) (err error) {
+	db := db.Init()
+
+	var u entity.User
+	if err := db.Where("id = ?", id).Unscoped().Delete(&u).Error; err != nil {
+		return err
+	}
+	defer db.Close()
+
 	return nil
 }

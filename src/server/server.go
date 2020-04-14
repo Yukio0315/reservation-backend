@@ -46,11 +46,11 @@ func router() *gin.Engine {
 		u := auth.Group("/users/:id")
 		{
 			u.GET("", userCtrl.Show)
+			u.DELETE("", userCtrl.Delete)
 			u.PATCH("/password", userCtrl.PasswordChange)
 			u.PATCH("/username", userCtrl.UserNameChange)
 			u.PATCH("/email", userCtrl.EmailChange)
 			// u.DELETE("/cancel", reservationCtrl.Cancel)
-			// u.DELETE("/delete", userCtrl.Delete)
 		}
 	}
 

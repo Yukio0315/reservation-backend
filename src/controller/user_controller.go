@@ -123,24 +123,32 @@ func (uc UserController) EmailChange(c *gin.Context) {
 	// TODO: send email
 }
 
-// // Delete delete the user account
-// func (uc UserController) Delete(c *gin.Context) {
-// 	id := entity.UserID{}
-// 	if err := c.ShouldBindUri(&id); err != nil {
-// 		c.JSON(400, err)
-// 	}
+// Delete delete the user account
+func (uc UserController) Delete(c *gin.Context) {
+	id := entity.UserID{}
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(400, err)
+	}
 
-// 	input := entity.UserEmail{}
-// 	if err := c.ShouldBindJSON(&input); err != nil {
-// 		c.JSON(400, err)
-// 		return
-// 	}
+	input := entity.UserEmail{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(400, err)
+		return
+	}
 
-// 	uc.s.FindIDByEmail()
+	storedID, err := uc.s.FindIDByEmail(input.Email)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
+	if id.ID != storedID {
+		c.JSON(400, "Invalid email")
+		return
+	}
 
-// 	if err := uc.s.DeleteByID(input); err != nil {
-// 		c.AbortWithStatus(404)
-// 	}
-// 	c.Status(200)
-// 	// TODO: send email
-// }
+	if err := uc.s.DeleteByID(id.ID); err != nil {
+		c.AbortWithStatus(404)
+	}
+	c.Status(200)
+	// TODO: send email
+}
