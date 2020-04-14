@@ -93,10 +93,3 @@ type UserProfile struct {
 	Email               Email                `json:"email"`
 	ReservationProfiles []ReservationProfile `json:"reservationProfile"`
 }
-
-// EmailContent represents content of email
-type EmailContent struct {
-	Email   Email
-	Subject string
-	Body    string
-}

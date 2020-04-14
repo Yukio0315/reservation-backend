@@ -97,12 +97,11 @@ func signin(input entity.UserInput) (*entity.UserIDAndPassword, error) {
 		return &entity.UserIDAndPassword{}, err
 	}
 
-	emailContent := entity.EmailContent{
+	api.GmailContent{
 		Email:   input.Email,
 		Subject: "【シェアオフィス】ご登録ありがとうございます",
 		Body:    "シェアオフィスへのご登録が完了しました。",
-	}
-	api.SendGmail(emailContent)
+	}.Send()
 
 	return &entity.UserIDAndPassword{
 		ID:       u.ID,

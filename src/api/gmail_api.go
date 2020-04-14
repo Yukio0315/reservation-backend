@@ -15,8 +15,15 @@ import (
 	"google.golang.org/api/gmail/v1"
 )
 
-// SendGmail send gmail
-func SendGmail(email entity.EmailContent) (err error) {
+// GmailContent represents content of email
+type GmailContent struct {
+	Email   entity.Email
+	Subject string
+	Body    string
+}
+
+// Send send gmail
+func (e GmailContent) Send() {
 	if err := godotenv.Load(); err != nil {
 		panic("failed to load .env file")
 	}
@@ -29,7 +36,7 @@ func SendGmail(email entity.EmailContent) (err error) {
 		Scopes:       []string{"https://mail.google.com/"},
 	}
 
-	expiry, _ := time.Parse("2006-01-02 03:04:05", "2020-04-14 23:15:00")
+	expiry, _ := time.Parse("2006-01-02 03:04:05", os.Getenv("EXPIRY"))
 	token := oauth2.Token{
 		AccessToken:  os.Getenv("ACCESS_TOKEN_GMAIL"),
 		TokenType:    "Bearer",
@@ -41,14 +48,14 @@ func SendGmail(email entity.EmailContent) (err error) {
 
 	srv, err := gmail.New(client)
 	if err != nil {
-		log.Fatal("Failed to connect gmail client")
+		log.Print("Failed to connect gmail client")
 	}
 
 	temp := []byte("From: 'Share office'\r\n" +
 		"reply-to: kurosunotai@gmail.com\r\n" +
-		"To: " + string(email.Email) + "\r\n" +
-		"Subject: " + util.ConvertUtf8ToISOHelper(email.Subject) + "\r\n" +
-		"\r\n" + email.Body)
+		"To: " + string(e.Email) + "\r\n" +
+		"Subject: " + util.ConvertUtf8ToISOHelper(e.Subject) + "\r\n" +
+		"\r\n" + e.Body)
 
 	var message gmail.Message
 	message.Raw = base64.StdEncoding.EncodeToString(temp)
@@ -58,7 +65,6 @@ func SendGmail(email entity.EmailContent) (err error) {
 
 	_, err = srv.Users.Messages.Send("kurosunotai@gmail.com", &message).Do()
 	if err != nil {
-		log.Fatal(err)
+		log.Print("err")
 	}
-	return err
 }
