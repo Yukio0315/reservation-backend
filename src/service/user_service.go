@@ -110,3 +110,15 @@ func (s UserService) UpdateUserNameByID(input entity.UserIDAndName) (err error) 
 	}
 	return nil
 }
+
+// UpdateEmailByID update email by ID
+func (s UserService) UpdateEmailByID(input entity.UserIDAndEmail) (err error) {
+	db := db.Init()
+
+	var u entity.User
+	db.Where("id = ?", input.ID).First(&u)
+	if err := db.Model(u).Update("email", input.Email).Error; err != nil {
+		return err
+	}
+	return nil
+}

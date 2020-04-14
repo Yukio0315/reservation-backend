@@ -53,14 +53,20 @@ type NewUser struct {
 
 // UserIDAndPassword represent user id and password
 type UserIDAndPassword struct {
-	ID       ID
-	Password HashedPassword
+	ID       ID             `json:"id" binding:"required"`
+	Password HashedPassword `json:"password" binding:"required"`
 }
 
 // UserIDAndName represent user id and name
 type UserIDAndName struct {
-	ID       ID
-	UserName UserName
+	ID       ID       `json:"id" binding:"required"`
+	UserName UserName `json:"userName" binding:"required"`
+}
+
+// UserIDAndEmail represent user id and email
+type UserIDAndEmail struct {
+	ID    ID    `json:"id" binding:"required"`
+	Email Email `json:"email" binding:"required"`
 }
 
 // UserInput represent user input

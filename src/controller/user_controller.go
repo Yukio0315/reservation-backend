@@ -95,3 +95,18 @@ func (uc UserController) UserNameChange(c *gin.Context) {
 	}
 	c.Status(200)
 }
+
+// EmailChange change the user email
+func (uc UserController) EmailChange(c *gin.Context) {
+	input := entity.UserIDAndEmail{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if err := uc.s.UpdateEmailByID(input); err != nil {
+		c.AbortWithStatus(404)
+	}
+	c.Status(200)
+	// TODO: send email
+}
