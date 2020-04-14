@@ -69,7 +69,7 @@ func verifyCredential(c *gin.Context) (interface{}, error) {
 
 func login(input entity.UserInput) (p *entity.UserIDAndPassword, err error) {
 	var us service.UserService
-	storedUser, err := us.FindByEmail(input.Email)
+	storedUser, err := us.FindIDAndPasswordByEmail(input.Email)
 	if err != nil {
 		return &entity.UserIDAndPassword{}, err
 	}

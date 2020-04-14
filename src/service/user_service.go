@@ -26,8 +26,21 @@ func (s UserService) CreateModel(userName entity.UserName, email entity.Email, p
 	return u, nil
 }
 
-// FindByEmail find a user auth information by email
-func (s UserService) FindByEmail(email entity.Email) (entity.UserIDAndPassword, error) {
+// FindIDByEmail find a user auth information by email
+func (s UserService) FindIDByEmail(email entity.Email) (entity.ID, error) {
+	db := db.Init()
+
+	var u entity.User
+	if err := db.Where("email = ?", email).First(&u).Error; err != nil {
+		return 0, err
+	}
+	defer db.Close()
+
+	return u.ID, nil
+}
+
+// FindIDAndPasswordByEmail find a user auth information by email
+func (s UserService) FindIDAndPasswordByEmail(email entity.Email) (entity.UserIDAndPassword, error) {
 	db := db.Init()
 
 	var u entity.User
@@ -100,24 +113,24 @@ func (s UserService) UpdatePassword(id entity.ID, plainPassword entity.PlainPass
 }
 
 // UpdateUserNameByID update userName by ID
-func (s UserService) UpdateUserNameByID(input entity.UserIDAndName) (err error) {
+func (s UserService) UpdateUserNameByID(id entity.ID, userName entity.UserName) (err error) {
 	db := db.Init()
 
 	var u entity.User
-	db.Where("id = ?", input.ID).First(&u)
-	if err := db.Model(u).Update("user_name", input.UserName).Error; err != nil {
+	db.Where("id = ?", id).First(&u)
+	if err := db.Model(u).Update("user_name", userName).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 // UpdateEmailByID update email by ID
-func (s UserService) UpdateEmailByID(input entity.UserIDAndEmail) (err error) {
+func (s UserService) UpdateEmailByID(id entity.ID, email entity.Email) (err error) {
 	db := db.Init()
 
 	var u entity.User
-	db.Where("id = ?", input.ID).First(&u)
-	if err := db.Model(u).Update("email", input.Email).Error; err != nil {
+	db.Where("id = ?", id).First(&u)
+	if err := db.Model(u).Update("email", email).Error; err != nil {
 		return err
 	}
 	return nil

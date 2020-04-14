@@ -49,9 +49,8 @@ func router() *gin.Engine {
 			u.PATCH("/password", userCtrl.PasswordChange)
 			u.PATCH("/username", userCtrl.UserNameChange)
 			u.PATCH("/email", userCtrl.EmailChange)
-			// u.DELETE("/cancel", userCtrl.Cancel)
+			// u.DELETE("/cancel", reservationCtrl.Cancel)
 			// u.DELETE("/delete", userCtrl.Delete)
-			// u.DELETE("/logout", userCtrl.Logout)
 		}
 	}
 
