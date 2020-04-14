@@ -81,3 +81,17 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 	c.Status(200)
 	// TODO: send email
 }
+
+// ChangeUserName chaneg the user name
+func (uc UserController) ChangeUserName(c *gin.Context) {
+	input := entity.UserIDAndName{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if err := uc.s.UpdateUserNameByID(input); err != nil {
+		c.AbortWithStatus(404)
+	}
+	c.Status(200)
+}

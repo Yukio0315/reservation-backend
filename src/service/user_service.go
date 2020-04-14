@@ -98,3 +98,15 @@ func (s UserService) UpdatePassword(id entity.ID, plainPassword entity.PlainPass
 	}
 	return nil
 }
+
+// UpdateUserNameByID update username by ID
+func (s UserService) UpdateUserNameByID(input entity.UserIDAndName) (err error) {
+	db := db.Init()
+
+	var u entity.User
+	db.Where("id = ?", input.ID).First(&u)
+	if err := db.Model(u).Update("user_name", input.UserName).Error; err != nil {
+		return err
+	}
+	return nil
+}

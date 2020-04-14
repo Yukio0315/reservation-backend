@@ -57,6 +57,12 @@ type UserIDAndPassword struct {
 	Password HashedPassword
 }
 
+// UserIDAndName represent user id and name
+type UserIDAndName struct {
+	ID       ID
+	UserName UserName
+}
+
 // UserInput represent user input
 type UserInput struct {
 	UserName UserName      `json:"username"`
