@@ -65,7 +65,7 @@ type UserIDAndName struct {
 
 // UserInput represent user input
 type UserInput struct {
-	UserName UserName      `json:"username"`
+	UserName UserName      `json:"userName"`
 	Email    Email         `json:"email" binding:"required"`
 	Password PlainPassword `json:"password" binding:"required"`
 }
@@ -79,7 +79,7 @@ type UserInputMailPassword struct {
 // UserProfile is represent user profile
 type UserProfile struct {
 	CreatedAt           time.Time            `json:"createdAt"`
-	UserName            UserName             `json:"username"`
+	UserName            UserName             `json:"userName"`
 	Email               Email                `json:"email"`
 	ReservationProfiles []ReservationProfile `json:"reservationProfile"`
 }

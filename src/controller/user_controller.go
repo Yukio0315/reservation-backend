@@ -29,8 +29,8 @@ func (uc UserController) Show(c *gin.Context) {
 	c.JSON(200, p)
 }
 
-// UpdatePassword controls updating password
-func (uc UserController) UpdatePassword(c *gin.Context) {
+// PasswordChange controls updating password
+func (uc UserController) PasswordChange(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.JSON(400, err)
@@ -82,8 +82,8 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 	// TODO: send email
 }
 
-// ChangeUserName chaneg the user name
-func (uc UserController) ChangeUserName(c *gin.Context) {
+// UserNameChange chaneg the user name
+func (uc UserController) UserNameChange(c *gin.Context) {
 	input := entity.UserIDAndName{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(400, err)

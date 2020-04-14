@@ -46,8 +46,8 @@ func router() *gin.Engine {
 		u := auth.Group("/users/:id")
 		{
 			u.GET("", userCtrl.Show)
-			u.PATCH("/password", userCtrl.UpdatePassword)
-			u.PATCH("/username", userCtrl.ChangeUserName)
+			u.PATCH("/password", userCtrl.PasswordChange)
+			u.PATCH("/username", userCtrl.UserNameChange)
 			// u.PATCH("/email", userCtrl.UpdateEmail)
 			// u.DELETE("/cancel", userCtrl.Cancel)
 			// u.DELETE("/delete", userCtrl.Delete)

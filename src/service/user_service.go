@@ -13,10 +13,10 @@ import (
 type UserService struct{}
 
 // CreateModel create new user
-func (s UserService) CreateModel(username entity.UserName, email entity.Email, password entity.HashedPassword) (entity.User, error) {
+func (s UserService) CreateModel(userName entity.UserName, email entity.Email, password entity.HashedPassword) (entity.User, error) {
 	db := db.Init()
 
-	u := entity.User{UserName: username, Email: email, Password: password}
+	u := entity.User{UserName: userName, Email: email, Password: password}
 
 	if err := db.Create(&u).Error; err != nil {
 		return entity.User{}, err
@@ -99,7 +99,7 @@ func (s UserService) UpdatePassword(id entity.ID, plainPassword entity.PlainPass
 	return nil
 }
 
-// UpdateUserNameByID update username by ID
+// UpdateUserNameByID update userName by ID
 func (s UserService) UpdateUserNameByID(input entity.UserIDAndName) (err error) {
 	db := db.Init()
 
