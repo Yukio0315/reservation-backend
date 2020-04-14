@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -95,6 +96,13 @@ func signin(input entity.UserInput) (*entity.UserIDAndPassword, error) {
 	if err != nil {
 		return &entity.UserIDAndPassword{}, err
 	}
+
+	emailContent := entity.EmailContent{
+		Email:   input.Email,
+		Subject: "【シェアオフィス】ご登録ありがとうございます",
+		Body:    "シェアオフィスへのご登録が完了しました。",
+	}
+	api.SendGmail(emailContent)
 
 	return &entity.UserIDAndPassword{
 		ID:       u.ID,

@@ -74,16 +74,29 @@ type UserInput struct {
 	Password PlainPassword `json:"password" binding:"required"`
 }
 
+// UserMailAndPassword represent user input
+type UserMailAndPassword struct {
+	Email    Email
+	Password HashedPassword
+}
+
 // UserInputMailPassword represent user input
 type UserInputMailPassword struct {
 	Email    Email         `json:"email" binding:"required"`
 	Password PlainPassword `json:"password" binding:"required"`
 }
 
-// UserProfile is represent user profile
+// UserProfile represents user profile
 type UserProfile struct {
 	CreatedAt           time.Time            `json:"createdAt"`
 	UserName            UserName             `json:"userName"`
 	Email               Email                `json:"email"`
 	ReservationProfiles []ReservationProfile `json:"reservationProfile"`
+}
+
+// EmailContent represents content of email
+type EmailContent struct {
+	Email   Email
+	Subject string
+	Body    string
 }

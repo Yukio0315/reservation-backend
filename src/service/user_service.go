@@ -55,17 +55,20 @@ func (s UserService) FindIDAndPasswordByEmail(email entity.Email) (entity.UserID
 	}, nil
 }
 
-// FindPasswordByID find a user password by id
-func (s UserService) FindPasswordByID(id entity.ID) (entity.HashedPassword, error) {
+// FindEmailAndPasswordByID find a user password by id
+func (s UserService) FindEmailAndPasswordByID(id entity.ID) (entity.UserMailAndPassword, error) {
 	db := db.Init()
 
 	var u entity.User
 	if err := db.Where("id = ?", id).First(&u).Error; err != nil {
-		return entity.HashedPassword{}, err
+		return entity.UserMailAndPassword{}, err
 	}
 	defer db.Close()
 
-	return u.Password, nil
+	return entity.UserMailAndPassword{
+		Email:    u.Email,
+		Password: u.Password,
+	}, nil
 }
 
 // FindUserProfileByID return user and reservation

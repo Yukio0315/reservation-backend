@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
 	"github.com/gin-gonic/gin"
@@ -41,13 +42,13 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 		c.JSON(400, err)
 	}
 
-	p, err := uc.s.FindPasswordByID(id.ID)
+	u, err := uc.s.FindEmailAndPasswordByID(id.ID)
 	if err != nil {
 		c.JSON(400, err)
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword(p, []byte(passwords.OldPassword)); err != nil {
+	if err := bcrypt.CompareHashAndPassword(u.Password, []byte(passwords.OldPassword)); err != nil {
 		c.JSON(400, err)
 		return
 	}
@@ -57,8 +58,13 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 		return
 	}
 
+	emailContent := entity.EmailContent{
+		Email:   u.Email,
+		Subject: "【シェアオフィス】パスワードの変更が完了しました",
+		Body:    "パスワードの変更が完了しました。",
+	}
+	api.SendGmail(emailContent)
 	c.Status(200)
-	// TODO: send email
 }
 
 // PasswordReset controls resetting password
@@ -78,8 +84,15 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 	if err := uc.s.UpdatePassword(id, input.Password); err != nil {
 		c.AbortWithStatus(404)
 	}
+
+	emailContent := entity.EmailContent{
+		Email:   input.Email,
+		Subject: "【シェアオフィス】パスワードのリセットが完了しました",
+		Body:    "パスワードのリセットが完了しました。",
+	}
+	api.SendGmail(emailContent)
+
 	c.Status(200)
-	// TODO: send email
 }
 
 // UserNameChange chaneg the user name
@@ -119,8 +132,14 @@ func (uc UserController) EmailChange(c *gin.Context) {
 		c.AbortWithStatus(404)
 		return
 	}
+	emailContent := entity.EmailContent{
+		Email:   input.Email,
+		Subject: "【シェアオフィス】Emailアドレスを変更しました",
+		Body:    "Emailアドレスを変更しました。",
+	}
+	api.SendGmail(emailContent)
+
 	c.Status(200)
-	// TODO: send email
 }
 
 // Delete delete the user account
@@ -149,6 +168,12 @@ func (uc UserController) Delete(c *gin.Context) {
 	if err := uc.s.DeleteByID(id.ID); err != nil {
 		c.AbortWithStatus(404)
 	}
+	emailContent := entity.EmailContent{
+		Email:   input.Email,
+		Subject: "【シェアオフィス】アカウントを削除しました",
+		Body:    "アカウントを削除しました。\nまたのご利用をお待ちしております。",
+	}
+	api.SendGmail(emailContent)
+
 	c.Status(200)
-	// TODO: send email
 }
