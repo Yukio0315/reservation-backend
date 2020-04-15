@@ -26,29 +26,32 @@ func (s UserService) CreateModel(userName entity.UserName, email entity.Email, p
 	return u, nil
 }
 
-// FindIDByEmail find a user auth information by email
-func (s UserService) FindIDByEmail(email entity.Email) (entity.ID, error) {
+func (s UserService) findByEmail(email entity.Email) (u entity.User, err error) {
 	db := db.Init()
 
-	var u entity.User
-	if err := db.Where("email = ?", email).First(&u).Error; err != nil {
-		return 0, err
+	if err = db.Where("email = ?", email).First(&u).Error; err != nil {
+		return entity.User{}, err
 	}
 	defer db.Close()
 
+	return u, nil
+}
+
+// FindIDByEmail find a user auth information by email
+func (s UserService) FindIDByEmail(email entity.Email) (entity.ID, error) {
+	u, err := s.findByEmail(email)
+	if err != nil {
+		return 0, err
+	}
 	return u.ID, nil
 }
 
 // FindIDAndPasswordByEmail find a user auth information by email
 func (s UserService) FindIDAndPasswordByEmail(email entity.Email) (entity.UserIDAndPassword, error) {
-	db := db.Init()
-
-	var u entity.User
-	if err := db.Where("email = ?", email).First(&u).Error; err != nil {
+	u, err := s.findByEmail(email)
+	if err != nil {
 		return entity.UserIDAndPassword{}, err
 	}
-	defer db.Close()
-
 	return entity.UserIDAndPassword{
 		ID:       u.ID,
 		Password: u.Password,
