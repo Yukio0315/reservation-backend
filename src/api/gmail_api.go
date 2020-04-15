@@ -36,7 +36,7 @@ func (e GmailContent) Send() {
 		Scopes:       []string{"https://mail.google.com/"},
 	}
 
-	expiry, _ := time.Parse("2006-01-02 03:04:05", os.Getenv("EXPIRY"))
+	expiry, _ := time.Parse("2006-01-02", "2020-04-14")
 	token := oauth2.Token{
 		AccessToken:  os.Getenv("ACCESS_TOKEN_GMAIL"),
 		TokenType:    "Bearer",

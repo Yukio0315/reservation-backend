@@ -57,13 +57,13 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 		c.AbortWithStatus(404)
 		return
 	}
+	c.Status(200)
 
-	api.GmailContent{
+	go api.GmailContent{
 		Email:   u.Email,
 		Subject: "【シェアオフィス】パスワードの変更が完了しました",
 		Body:    "パスワードの変更が完了しました。",
 	}.Send()
-	c.Status(200)
 }
 
 // PasswordReset controls resetting password
@@ -83,14 +83,14 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 	if err := uc.s.UpdatePassword(id, input.Password); err != nil {
 		c.AbortWithStatus(404)
 	}
+	c.Status(200)
 
-	api.GmailContent{
+	go api.GmailContent{
 		Email:   input.Email,
 		Subject: "【シェアオフィス】パスワードのリセットが完了しました",
 		Body:    "パスワードのリセットが完了しました。",
 	}.Send()
 
-	c.Status(200)
 }
 
 // UserNameChange chaneg the user name
@@ -130,14 +130,13 @@ func (uc UserController) EmailChange(c *gin.Context) {
 		c.AbortWithStatus(404)
 		return
 	}
+	c.Status(200)
 
-	api.GmailContent{
+	go api.GmailContent{
 		Email:   input.Email,
 		Subject: "【シェアオフィス】Emailアドレスを変更しました",
 		Body:    "Emailアドレスを変更しました。",
 	}.Send()
-
-	c.Status(200)
 }
 
 // Delete delete the user account
@@ -166,12 +165,11 @@ func (uc UserController) Delete(c *gin.Context) {
 	if err := uc.s.DeleteByID(id.ID); err != nil {
 		c.AbortWithStatus(404)
 	}
+	c.Status(200)
 
-	api.GmailContent{
+	go api.GmailContent{
 		Email:   input.Email,
 		Subject: "【シェアオフィス】アカウントを削除しました",
 		Body:    "アカウントを削除しました。\nまたのご利用をお待ちしております。",
 	}.Send()
-
-	c.Status(200)
 }
