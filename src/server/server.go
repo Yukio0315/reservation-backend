@@ -27,7 +27,7 @@ func router() *gin.Engine {
 	authMiddleware := middleware.AuthMiddleware()
 
 	userCtrl := controller.UserController{}
-	// reservationCtrl := controller.ReservationController{}
+	eventCtrl := controller.EventController{}
 
 	a := r.Group("/api")
 	a.POST("/signin", authMiddleware.LoginHandler)
@@ -37,10 +37,13 @@ func router() *gin.Engine {
 	auth := a.Group("")
 	auth.Use(authMiddleware.MiddlewareFunc())
 	{
+		e := auth.Group("/event/:id")
+		{
+			e.GET("", eventCtrl.Show)
+		}
 		// r := auth.Group("/reservation")
 		// {
-		// 	r.GET("/", reservationCtrl.Show)
-		// 	r.GET("/", reservationCtrl.Add)
+		// 	r.POST("/", reservationCtrl.Add)
 		// }
 
 		u := auth.Group("/users/:id")

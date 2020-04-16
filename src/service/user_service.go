@@ -79,27 +79,20 @@ func (s UserService) FindUserProfileByID(id entity.ID) (entity.UserProfile, erro
 	db := db.Init()
 
 	var u entity.User
-	if err := db.Preload("Reservations", "end > ?", time.Now(), func(db *gorm.DB) *gorm.DB {
+	if err := db.Preload("Reservations", "start >= ?", time.Now().Format("2006-01-02"), func(db *gorm.DB) *gorm.DB {
 		return db.Order("reservations.start DESC")
 	}).Where("id = ?", id).First(&u).Error; err != nil {
 		return entity.UserProfile{}, err
 	}
 	defer db.Close()
 
-	var reservationProfiles []entity.ReservationProfile
-	for _, r := range u.Reservations {
-		rp := entity.ReservationProfile{
-			Start: r.Start,
-			End:   r.End,
-		}
-		reservationProfiles = append(reservationProfiles, rp)
-	}
+	durations := u.Reservations.GenerateDurations()
 
 	return entity.UserProfile{
-		CreatedAt:           u.CreatedAt,
-		UserName:            u.UserName,
-		Email:               u.Email,
-		ReservationProfiles: reservationProfiles,
+		CreatedAt:            u.CreatedAt,
+		UserName:             u.UserName,
+		Email:                u.Email,
+		ReservationDurations: durations,
 	}, nil
 }
 

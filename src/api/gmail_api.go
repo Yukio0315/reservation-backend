@@ -5,13 +5,10 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/util"
 	"github.com/joho/godotenv"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
 )
 
@@ -28,31 +25,13 @@ func (e GmailContent) Send() {
 		panic("failed to load .env file")
 	}
 
-	config := oauth2.Config{
-		ClientID:     os.Getenv("CLIENT_ID"),
-		ClientSecret: os.Getenv("CLIENT_SECRET"),
-		Endpoint:     google.Endpoint,
-		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
-		Scopes:       []string{"https://mail.google.com/"},
-	}
-
-	expiry, _ := time.Parse("2006-01-02", "2020-04-14")
-	token := oauth2.Token{
-		AccessToken:  os.Getenv("ACCESS_TOKEN_GMAIL"),
-		TokenType:    "Bearer",
-		RefreshToken: os.Getenv("REFRESH_TOKEN_GMAIL"),
-		Expiry:       expiry,
-	}
-
-	client := config.Client(oauth2.NoContext, &token)
-
-	srv, err := gmail.New(client)
+	srv, err := gmail.New(googleOauth2Client())
 	if err != nil {
 		log.Print("Failed to connect gmail client")
 	}
 
 	temp := []byte("From: 'Share office'\r\n" +
-		"reply-to: kurosunotai@gmail.com\r\n" +
+		"reply-to: " + os.Getenv("GMAIL_ADDRESS") + "\r\n" +
 		"To: " + string(e.Email) + "\r\n" +
 		"Subject: " + util.ConvertUtf8ToISOHelper(e.Subject) + "\r\n" +
 		"\r\n" + e.Body)
