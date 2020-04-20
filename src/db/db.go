@@ -23,6 +23,10 @@ func Init() *gorm.DB {
 	}
 
 	db.AutoMigrate(&entity.User{}, &entity.Reservation{}, &entity.Event{}, &entity.EventSlot{}, &entity.ReservationEventSlot{})
-
+	db.Model(&entity.Reservation{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
+	db.Model(&entity.EventSlot{}).AddForeignKey("event_id", "events(id)", "CASCADE", "CASCADE")
+	db.Model(&entity.ReservationEventSlot{}).
+		AddForeignKey("reservation_id", "reservations(id)", "CASCADE", "CASCADE").
+		AddForeignKey("event_slot_id", "event_slots(id)", "CASCADE", "CASCADE")
 	return db
 }

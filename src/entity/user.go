@@ -28,6 +28,7 @@ type User struct {
 	Reservations Reservations
 }
 
+// UserToEmailAndName change user struct to EmailAndName struct
 func (u User) UserToEmailAndName() EmailAndName {
 	return EmailAndName{
 		Email:    u.Email,
@@ -74,6 +75,7 @@ type UserEmail struct {
 	Email Email `json:"email" binding:"required"`
 }
 
+// EmailAndName represent email and name
 type EmailAndName struct {
 	Email    Email
 	UserName UserName

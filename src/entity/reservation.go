@@ -51,6 +51,11 @@ type ReservationIDAndDuration struct {
 	End   time.Time
 }
 
+// ReservationID represent reservation id
+type ReservationID struct {
+	ReservationID ID `json:"id" binding:"required"`
+}
+
 // FindReservationIDAndDuration return reservation id and duration for user
 func (rs Reservations) FindReservationIDAndDuration() (result []ReservationIDAndDuration) {
 	for _, r := range rs {

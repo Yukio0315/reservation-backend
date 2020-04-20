@@ -45,6 +45,7 @@ func router() *gin.Engine {
 		r := auth.Group("/reservation/:id")
 		{
 			r.POST("/", reservationCtrl.Add)
+			r.DELETE("/", reservationCtrl.Cancel)
 		}
 
 		u := auth.Group("/users/:id")
@@ -54,7 +55,6 @@ func router() *gin.Engine {
 			u.PATCH("/password", userCtrl.PasswordChange)
 			u.PATCH("/username", userCtrl.UserNameChange)
 			u.PATCH("/email", userCtrl.EmailChange)
-			// u.DELETE("/cancel", reservationCtrl.Cancel)
 		}
 		// admin := u.Group("admin")
 		// admin.Use(authMiddleware.MiddlewareFunc())

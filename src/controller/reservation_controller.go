@@ -43,3 +43,21 @@ func (rc ReservationController) Add(c *gin.Context) {
 	}
 	c.Status(200)
 }
+
+// Cancel controller cancel reservation
+func (rc ReservationController) Cancel(c *gin.Context) {
+	id := entity.UserID{}
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(400, err)
+	}
+
+	reservationID := entity.ReservationID{}
+	if err := c.ShouldBindJSON(&reservationID); err != nil {
+		c.JSON(400, err)
+	}
+
+	if err := rc.sr.DeleteReservation(id.ID, reservationID.ReservationID); err != nil {
+		c.JSON(400, err)
+	}
+	c.Status(200)
+}
