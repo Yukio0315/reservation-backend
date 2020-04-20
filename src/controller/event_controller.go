@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
 	"github.com/gin-gonic/gin"
@@ -9,15 +8,16 @@ import (
 
 // EventController represent event
 type EventController struct {
-	gc api.GoogleCalendar
-	es service.EventService
-	rs service.ReservationService
+	rs  service.ReservationService
+	es  service.EventService
+	ess service.EventSlotService
 }
 
 // Show shows reservable events
 func (ec EventController) Show(c *gin.Context) {
-	id := entity.UserID{}
-	if err := c.ShouldBindUri(&id); err != nil {
+	ec.es.CreateModels()
+	userID := entity.UserID{}
+	if err := c.ShouldBindUri(&userID); err != nil {
 		c.JSON(400, err)
 	}
 
@@ -27,6 +27,16 @@ func (ec EventController) Show(c *gin.Context) {
 		return
 	}
 
-	ds := events.GenerateDurations()
-	c.JSON(200, ds)
+	reservations, err := ec.rs.FindByUserID(userID.ID)
+	if err != nil {
+		c.AbortWithStatus(404)
+		return
+	}
+
+	if len(events.FullEventIDs()) == 0 && len(reservations) == 0 {
+		c.JSON(200, events.MakeDurations())
+	} else {
+		reservedEventSlotIDs := reservations.FindEventSlotIDsByUserID(userID.ID)
+		c.JSON(200, events.GenerateDurations(reservedEventSlotIDs))
+	}
 }

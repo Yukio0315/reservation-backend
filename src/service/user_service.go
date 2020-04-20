@@ -10,15 +10,17 @@ import (
 )
 
 // UserService struct
-type UserService struct{}
+type UserService struct {
+	rs ReservationService
+}
 
 // CreateModel create new user
-func (s UserService) CreateModel(userName entity.UserName, email entity.Email, password entity.HashedPassword) (entity.User, error) {
+func (s UserService) CreateModel(userName entity.UserName, email entity.Email, password entity.HashedPassword) (u entity.User, err error) {
 	db := db.Init()
 
-	u := entity.User{UserName: userName, Email: email, Password: password}
+	u = entity.User{UserName: userName, Email: email, Password: password}
 
-	if err := db.Create(&u).Error; err != nil {
+	if err = db.Create(&u).Error; err != nil {
 		return entity.User{}, err
 	}
 	defer db.Close()
@@ -58,15 +60,42 @@ func (s UserService) FindIDAndPasswordByEmail(email entity.Email) (entity.UserID
 	}, nil
 }
 
-// FindEmailAndPasswordByID find a user password by id
-func (s UserService) FindEmailAndPasswordByID(id entity.ID) (entity.UserMailAndPassword, error) {
+// FindIDByEmailTx find user id by email in the transaction
+func (s UserService) FindIDByEmailTx(tx *gorm.DB, email entity.Email) (entity.ID, error) {
+	u := entity.User{}
+	if err := tx.Where("email = ?", email).First(&u).Error; err != nil {
+		return 0, err
+	}
+
+	return u.ID, nil
+}
+
+// FindByID find users by ID
+func (s UserService) FindByID(id entity.ID) (u entity.User, err error) {
 	db := db.Init()
 
-	var u entity.User
-	if err := db.Where("id = ?", id).First(&u).Error; err != nil {
-		return entity.UserMailAndPassword{}, err
+	if err = db.Where("id = ?", id).First(&u).Error; err != nil {
+		return entity.User{}, err
 	}
 	defer db.Close()
+	return u, nil
+}
+
+// FindEmailByID return email by ID
+func (s UserService) FindEmailByID(id entity.ID) (entity.Email, error) {
+	u, err := s.FindByID(id)
+	if err != nil {
+		return "", err
+	}
+	return u.Email, nil
+}
+
+// FindEmailAndPasswordByID find a user password by id
+func (s UserService) FindEmailAndPasswordByID(id entity.ID) (entity.UserMailAndPassword, error) {
+	u, err := s.FindByID(id)
+	if err != nil {
+		return entity.UserMailAndPassword{}, err
+	}
 
 	return entity.UserMailAndPassword{
 		Email:    u.Email,
@@ -78,7 +107,7 @@ func (s UserService) FindEmailAndPasswordByID(id entity.ID) (entity.UserMailAndP
 func (s UserService) FindUserProfileByID(id entity.ID) (entity.UserProfile, error) {
 	db := db.Init()
 
-	var u entity.User
+	u := entity.User{}
 	if err := db.Preload("Reservations", "start >= ?", time.Now().Format("2006-01-02"), func(db *gorm.DB) *gorm.DB {
 		return db.Order("reservations.start DESC")
 	}).Where("id = ?", id).First(&u).Error; err != nil {
@@ -86,7 +115,10 @@ func (s UserService) FindUserProfileByID(id entity.ID) (entity.UserProfile, erro
 	}
 	defer db.Close()
 
-	durations := u.Reservations.GenerateDurations()
+	durations, err := s.rs.FindDurationsByID(id)
+	if err != nil {
+		return entity.UserProfile{}, err
+	}
 
 	return entity.UserProfile{
 		CreatedAt:            u.CreatedAt,
@@ -97,16 +129,16 @@ func (s UserService) FindUserProfileByID(id entity.ID) (entity.UserProfile, erro
 }
 
 // UpdatePassword update password from the given id
-func (s UserService) UpdatePassword(id entity.ID, plainPassword entity.PlainPassword) (err error) {
+func (s UserService) UpdatePassword(id entity.ID, plainPassword entity.PlainPassword) error {
 	db := db.Init()
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), 10)
 	if err != nil {
 		return err
 	}
 
-	var u entity.User
+	u := entity.User{}
 	db.Where("id = ?", id).First(&u)
-	if err := db.Model(u).Update("password", hashedPassword).Error; err != nil {
+	if err = db.Model(u).Update("password", hashedPassword).Error; err != nil {
 		return err
 	}
 	defer db.Close()
@@ -118,9 +150,9 @@ func (s UserService) UpdatePassword(id entity.ID, plainPassword entity.PlainPass
 func (s UserService) UpdateUserNameByID(id entity.ID, userName entity.UserName) (err error) {
 	db := db.Init()
 
-	var u entity.User
+	u := entity.User{}
 	db.Where("id = ?", id).First(&u)
-	if err := db.Model(u).Update("user_name", userName).Error; err != nil {
+	if err = db.Model(u).Update("user_name", userName).Error; err != nil {
 		return err
 	}
 	defer db.Close()
@@ -132,9 +164,9 @@ func (s UserService) UpdateUserNameByID(id entity.ID, userName entity.UserName) 
 func (s UserService) UpdateEmailByID(id entity.ID, email entity.Email) (err error) {
 	db := db.Init()
 
-	var u entity.User
+	u := entity.User{}
 	db.Where("id = ?", id).First(&u)
-	if err := db.Model(u).Update("email", email).Error; err != nil {
+	if err = db.Model(u).Update("email", email).Error; err != nil {
 		return err
 	}
 	defer db.Close()
@@ -146,8 +178,8 @@ func (s UserService) UpdateEmailByID(id entity.ID, email entity.Email) (err erro
 func (s UserService) DeleteByID(id entity.ID) (err error) {
 	db := db.Init()
 
-	var u entity.User
-	if err := db.Where("id = ?", id).Unscoped().Delete(&u).Error; err != nil {
+	u := entity.User{}
+	if err = db.Where("id = ?", id).Unscoped().Delete(&u).Error; err != nil {
 		return err
 	}
 	defer db.Close()

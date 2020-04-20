@@ -7,4 +7,10 @@ const (
 	ENDTIME = 23
 	// MAXIMUM is maximum slots of reservations
 	MAXIMUM = 6
+	// INTERVAL is interval hour of reservations
+	INTERVAL = 1
+	// IDENTITYKEY is identitykey for jwt authentication
+	IDENTITYKEY = "id"
+	// EMAIL is main address
+	EMAIL = "kurosunotai@gmail.com"
 )

@@ -8,13 +8,12 @@ import (
 	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
+	"github.com/Yukio0315/reservation-backend/src/util"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var identityKey = "id"
 
 // AuthMiddleware returns middleware for authentication using JWT authorization
 func AuthMiddleware() *jwt.GinJWTMiddleware {
@@ -27,7 +26,7 @@ func AuthMiddleware() *jwt.GinJWTMiddleware {
 		Realm:           "reservation zone",
 		Key:             []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
 		MaxRefresh:      time.Hour,
-		IdentityKey:     identityKey,
+		IdentityKey:     util.IDENTITYKEY,
 		PayloadFunc:     convertUserIDToMapClaims,
 		IdentityHandler: handleIdentity,
 		Authenticator:   verifyCredential,
@@ -45,7 +44,7 @@ func AuthMiddleware() *jwt.GinJWTMiddleware {
 func convertUserIDToMapClaims(data interface{}) jwt.MapClaims {
 	if v, ok := data.(*entity.UserIDAndPassword); ok {
 		return jwt.MapClaims{
-			identityKey: v.ID,
+			util.IDENTITYKEY: v.ID,
 		}
 	}
 	return jwt.MapClaims{}
@@ -53,7 +52,7 @@ func convertUserIDToMapClaims(data interface{}) jwt.MapClaims {
 
 func handleIdentity(c *gin.Context) interface{} {
 	claims := jwt.ExtractClaims(c)
-	return claims[identityKey].(float64)
+	return claims[util.IDENTITYKEY].(float64)
 }
 
 func verifyCredential(c *gin.Context) (interface{}, error) {
@@ -68,14 +67,14 @@ func verifyCredential(c *gin.Context) (interface{}, error) {
 	return signin(input)
 }
 
-func login(input entity.UserInput) (p *entity.UserIDAndPassword, err error) {
-	var us service.UserService
+func login(input entity.UserInput) (*entity.UserIDAndPassword, error) {
+	us := service.UserService{}
 	storedUser, err := us.FindIDAndPasswordByEmail(input.Email)
 	if err != nil {
 		return &entity.UserIDAndPassword{}, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword(storedUser.Password, []byte(input.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword(storedUser.Password, []byte(input.Password)); err != nil {
 		return &entity.UserIDAndPassword{}, jwt.ErrFailedAuthentication
 	}
 
@@ -91,7 +90,7 @@ func signin(input entity.UserInput) (*entity.UserIDAndPassword, error) {
 		return &entity.UserIDAndPassword{}, err
 	}
 
-	var us service.UserService
+	us := service.UserService{}
 	u, err := us.CreateModel(input.UserName, input.Email, hashedPassword)
 	if err != nil {
 		return &entity.UserIDAndPassword{}, err

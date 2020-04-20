@@ -28,6 +28,13 @@ type User struct {
 	Reservations Reservations
 }
 
+func (u User) UserToEmailAndName() EmailAndName {
+	return EmailAndName{
+		Email:    u.Email,
+		UserName: u.UserName,
+	}
+}
+
 // UserID represent user id
 type UserID struct {
 	ID ID `uri:"id" binding:"required"`
@@ -65,6 +72,11 @@ type UserNameInput struct {
 // UserEmail represent user id and email
 type UserEmail struct {
 	Email Email `json:"email" binding:"required"`
+}
+
+type EmailAndName struct {
+	Email    Email
+	UserName UserName
 }
 
 // UserInput represent user input

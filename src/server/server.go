@@ -28,6 +28,7 @@ func router() *gin.Engine {
 
 	userCtrl := controller.UserController{}
 	eventCtrl := controller.EventController{}
+	reservationCtrl := controller.ReservationController{}
 
 	a := r.Group("/api")
 	a.POST("/signin", authMiddleware.LoginHandler)
@@ -41,10 +42,10 @@ func router() *gin.Engine {
 		{
 			e.GET("", eventCtrl.Show)
 		}
-		// r := auth.Group("/reservation")
-		// {
-		// 	r.POST("/", reservationCtrl.Add)
-		// }
+		r := auth.Group("/reservation/:id")
+		{
+			r.POST("/", reservationCtrl.Add)
+		}
 
 		u := auth.Group("/users/:id")
 		{
@@ -55,6 +56,11 @@ func router() *gin.Engine {
 			u.PATCH("/email", userCtrl.EmailChange)
 			// u.DELETE("/cancel", reservationCtrl.Cancel)
 		}
+		// admin := u.Group("admin")
+		// admin.Use(authMiddleware.MiddlewareFunc())
+		// {
+		// 	admin.DELETE("", eventCtrl.Delete)
+		// }
 	}
 
 	return r

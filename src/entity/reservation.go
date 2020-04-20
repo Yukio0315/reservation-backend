@@ -2,58 +2,79 @@ package entity
 
 import (
 	"time"
+
+	"github.com/Yukio0315/reservation-backend/src/util"
 )
 
 // Reservation represent user's reservation
 type Reservation struct {
-	ID        uint `gorm:"primary_key"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	UserID    uint
-	EventID   uint
-	Start     time.Time
+	ID                    ID `gorm:"primary_key"`
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+	UserID                ID
+	GoogleEventID         string `gorm:"not null"`
+	Start                 time.Time
+	End                   time.Time
+	ReservationEventSlots ReservationEventSlots
+	EventSlots            []EventSlot `gorm:"many2many:reservation_event_slots;"`
+}
+
+func (r Reservation) findEventSlotIDsByReservation() (eventSlotIDs []ID) {
+	eventSlotIDsUint := []uint{}
+	for _, re := range r.ReservationEventSlots {
+		if re.ReservationID == r.ID {
+			eventSlotIDsUint = append(eventSlotIDsUint, uint(r.ID))
+		}
+	}
+	uniqueIDs := util.UniqueID(eventSlotIDsUint)
+	for _, id := range uniqueIDs {
+		eventSlotIDs = append(eventSlotIDs, ID(id))
+	}
+	return eventSlotIDs
 }
 
 // Reservations represent array of Reservation
 type Reservations []Reservation
 
-func (rs Reservations) eventIDs() (i []uint) {
-	keys := make(map[uint]bool)
-	result := []uint{}
-	for _, r := range rs {
-		if value := keys[r.EventID]; !value {
-			keys[r.EventID] = true
-			result = append(result, r.EventID)
-		}
-	}
-	return result
+// ReservationUserAndTime is for add google calendar
+type ReservationUserAndTime struct {
+	UserName UserName
+	Email    Email
+	Start    time.Time
+	End      time.Time
 }
 
-// GenerateDurations generate Event durations
-func (rs Reservations) GenerateDurations() (ds Durations) {
-	eventIDs := rs.eventIDs()
-	for _, i := range eventIDs {
-		minStart := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
-		maxStart := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
-		for _, r := range rs {
-			if r.EventID == i {
-				if minStart.IsZero() {
-					minStart = r.Start
-					maxStart = r.Start
-				}
-				if minStart.Before(r.Start) {
-					minStart = r.Start
-				}
-				if maxStart.After(r.Start) {
-					maxStart = r.Start
-				}
-			}
+// MakeDurations return durations from reservations
+func (rs Reservations) MakeDurations() (ds Durations) {
+	for _, r := range rs {
+		duration := Duration{
+			Start: r.Start,
+			End:   r.End,
 		}
-		d := Duration{
-			Start: minStart,
-			End:   maxStart.Add(time.Hour),
-		}
-		ds = append(ds, d)
+		ds = append(ds, duration)
 	}
 	return ds
+}
+
+// findIDsByUserID can find ids by user id
+func (rs Reservations) findIDsByUserID(userID ID) (ids []ID) {
+	for _, r := range rs {
+		if r.UserID == userID {
+			ids = append(ids, r.ID)
+		}
+	}
+	return ids
+}
+
+// FindEventSlotIDsByUserID find eventSlotIDs by userID
+func (rs Reservations) FindEventSlotIDsByUserID(userID ID) (eventSlotIDs []ID) {
+	reservationIDs := rs.findIDsByUserID(userID)
+	for _, r := range rs {
+		for _, rid := range reservationIDs {
+			if rid == r.ID {
+				eventSlotIDs = append(eventSlotIDs, r.findEventSlotIDsByReservation()...)
+			}
+		}
+	}
+	return eventSlotIDs
 }

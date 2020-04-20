@@ -8,18 +8,24 @@ import (
 	"github.com/Yukio0315/reservation-backend/src/db"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/util"
+	"github.com/jinzhu/gorm"
 	"google.golang.org/api/calendar/v3"
 )
 
 // EventService represent event service
-type EventService struct{}
+type EventService struct {
+	us  UserService
+	rs  ReservationService
+	ess EventSlotService
+}
 
 // FindAll find all events and reservations in a 1 month from today.
 func (es EventService) FindAll() (events entity.Events, err error) {
 	db := db.Init()
-	if err = db.Preload("Reservations").
-		Order("start asc").
-		Where("start >= ? AND start <= ?", time.Now().Format("2006-01-02"), time.Now().AddDate(0, 1, 0).Format("2006-01-02")).
+	if err = db.Order("start asc").
+		Where("start > ? AND start < ?", time.Now().AddDate(0, 0, 1).Format("2006-01-02"), time.Now().AddDate(0, 0, 30).Format("2006-01-02")).
+		Preload("EventSlots.ReservationEventSlots").
+		Preload("EventSlots").
 		Find(&events).Error; err != nil {
 		return entity.Events{}, err
 	}
@@ -35,22 +41,48 @@ func (es EventService) CreateModels() error {
 	if err != nil {
 		return err
 	}
+	db := db.Init()
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return err
+	}
+
 	for _, e := range list.Items {
 		if strings.ToLower(e.Summary) == "share" {
 			start, end := es.generateStartEndTime(e)
-			daytime := start
-			for daytime.Before(end) {
-				event := entity.Event{
-					Start: daytime,
+			id, err := es.upSertEvent(tx, start, end)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+			for _, a := range e.Attendees {
+				if a.Email == util.EMAIL {
+					continue
 				}
-				daytime = daytime.Add(time.Hour)
-				if err = es.updateOrCreateEvent(event); err != nil {
+				userID, err := es.us.FindIDByEmailTx(tx, entity.Email(a.Email))
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+				reservationID, err := es.rs.upSertReservation(tx, start, end, userID, e.Id)
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+				err = es.ess.upSertEventSlotsAndReservationEventSlots(tx, start, end, id, reservationID)
+				if err != nil {
+					tx.Rollback()
 					return err
 				}
 			}
 		}
 	}
-	return nil
+	return tx.Commit().Error
 }
 
 func (es EventService) generateStartEndTime(e *calendar.Event) (start time.Time, end time.Time) {
@@ -67,11 +99,14 @@ func (es EventService) generateStartEndTime(e *calendar.Event) (start time.Time,
 	return start, end
 }
 
-func (es EventService) updateOrCreateEvent(event entity.Event) (err error) {
-	db := db.Init()
-	eventType := entity.Event{}
-	if err = db.FirstOrCreate(&eventType, event).Error; err != nil {
-		return err
+func (es EventService) upSertEvent(tx *gorm.DB, start time.Time, end time.Time) (id entity.ID, err error) {
+	event := entity.Event{
+		Start: start,
+		End:   end,
 	}
-	return nil
+	storedEvent := entity.Event{}
+	if err = tx.FirstOrCreate(&storedEvent, event).Error; err != nil {
+		return id, err
+	}
+	return storedEvent.ID, nil
 }

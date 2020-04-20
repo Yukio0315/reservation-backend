@@ -19,3 +19,14 @@ func ConvertUtf8ToISOHelper(str string) string {
 	}
 	return string(ret)
 }
+
+func UniqueID(slice []uint) (result []uint) {
+	keys := make(map[uint]bool)
+	for _, entry := range slice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			result = append(result, entry)
+		}
+	}
+	return result
+}
