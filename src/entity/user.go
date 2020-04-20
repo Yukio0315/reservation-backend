@@ -100,8 +100,8 @@ type UserInputMailPassword struct {
 
 // UserProfile represents user profile
 type UserProfile struct {
-	CreatedAt            time.Time `json:"createdAt"`
-	UserName             UserName  `json:"userName"`
-	Email                Email     `json:"email"`
-	ReservationDurations Durations `json:"events"`
+	CreatedAt    time.Time                  `json:"createdAt"`
+	UserName     UserName                   `json:"userName"`
+	Email        Email                      `json:"email"`
+	Reservations []ReservationIDAndDuration `json:"reservations"`
 }

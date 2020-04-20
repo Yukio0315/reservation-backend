@@ -20,6 +20,7 @@ func ConvertUtf8ToISOHelper(str string) string {
 	return string(ret)
 }
 
+// UniqueID make the uint slice unique
 func UniqueID(slice []uint) (result []uint) {
 	keys := make(map[uint]bool)
 	for _, entry := range slice {

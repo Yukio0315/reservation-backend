@@ -60,20 +60,6 @@ func (rs ReservationService) upSertReservation(tx *gorm.DB, start time.Time, end
 	return storedReservation.ID, nil
 }
 
-// FindDurationsByID returns durations from reservations table
-func (rs ReservationService) FindDurationsByID(id entity.ID) (entity.Durations, error) {
-	db := db.Init()
-
-	reservations := entity.Reservations{}
-	if err := db.Where("start >= ?", time.Now()).
-		Order("start asc").
-		Find(&reservations).Error; err != nil {
-		return entity.Durations{}, err
-	}
-	defer db.Close()
-	return reservations.MakeDurations(), nil
-}
-
 // FindByUserID can find reservations by user ID
 func (rs ReservationService) FindByUserID(userID entity.ID) (reservations entity.Reservations, err error) {
 	db := db.Init()

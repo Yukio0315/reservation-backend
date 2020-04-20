@@ -44,6 +44,26 @@ type ReservationUserAndTime struct {
 	End      time.Time
 }
 
+// ReservationIDAndDuration represent reservation information for users
+type ReservationIDAndDuration struct {
+	ID    ID
+	Start time.Time
+	End   time.Time
+}
+
+// FindReservationIDAndDuration return reservation id and duration for user
+func (rs Reservations) FindReservationIDAndDuration() (result []ReservationIDAndDuration) {
+	for _, r := range rs {
+		reservation := ReservationIDAndDuration{
+			ID:    r.ID,
+			Start: r.Start,
+			End:   r.End,
+		}
+		result = append(result, reservation)
+	}
+	return result
+}
+
 // MakeDurations return durations from reservations
 func (rs Reservations) MakeDurations() (ds Durations) {
 	for _, r := range rs {

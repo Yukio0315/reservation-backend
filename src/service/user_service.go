@@ -115,16 +115,11 @@ func (s UserService) FindUserProfileByID(id entity.ID) (entity.UserProfile, erro
 	}
 	defer db.Close()
 
-	durations, err := s.rs.FindDurationsByID(id)
-	if err != nil {
-		return entity.UserProfile{}, err
-	}
-
 	return entity.UserProfile{
-		CreatedAt:            u.CreatedAt,
-		UserName:             u.UserName,
-		Email:                u.Email,
-		ReservationDurations: durations,
+		CreatedAt:    u.CreatedAt,
+		UserName:     u.UserName,
+		Email:        u.Email,
+		Reservations: u.Reservations.FindReservationIDAndDuration(),
 	}, nil
 }
 
