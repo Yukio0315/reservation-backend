@@ -42,9 +42,10 @@ func AuthMiddleware() *jwt.GinJWTMiddleware {
 }
 
 func convertUserIDToMapClaims(data interface{}) jwt.MapClaims {
-	if v, ok := data.(*entity.UserIDAndPassword); ok {
+	if v, ok := data.(*entity.UserAuth); ok {
 		return jwt.MapClaims{
-			util.IDENTITYKEY: v.ID,
+			util.IDENTITYKEY:  v.ID,
+			util.IDENTITYKEY2: v.Permission,
 		}
 	}
 	return jwt.MapClaims{}
@@ -67,33 +68,34 @@ func verifyCredential(c *gin.Context) (interface{}, error) {
 	return signin(input)
 }
 
-func login(input entity.UserInput) (*entity.UserIDAndPassword, error) {
+func login(input entity.UserInput) (*entity.UserAuth, error) {
 	us := service.UserService{}
 	storedUser, err := us.FindIDAndPasswordByEmail(input.Email)
 	if err != nil {
-		return &entity.UserIDAndPassword{}, err
+		return &entity.UserAuth{}, err
 	}
 
 	if err = bcrypt.CompareHashAndPassword(storedUser.Password, []byte(input.Password)); err != nil {
-		return &entity.UserIDAndPassword{}, jwt.ErrFailedAuthentication
+		return &entity.UserAuth{}, jwt.ErrFailedAuthentication
 	}
 
-	return &entity.UserIDAndPassword{
-		ID:       storedUser.ID,
-		Password: storedUser.Password,
+	return &entity.UserAuth{
+		ID:         storedUser.ID,
+		Password:   storedUser.Password,
+		Permission: storedUser.Permission,
 	}, nil
 }
 
-func signin(input entity.UserInput) (*entity.UserIDAndPassword, error) {
+func signin(input entity.UserInput) (*entity.UserAuth, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
 	if err != nil {
-		return &entity.UserIDAndPassword{}, err
+		return &entity.UserAuth{}, err
 	}
 
 	us := service.UserService{}
 	u, err := us.CreateModel(input.UserName, input.Email, hashedPassword)
 	if err != nil {
-		return &entity.UserIDAndPassword{}, err
+		return &entity.UserAuth{}, err
 	}
 
 	go api.GmailContent{
@@ -102,9 +104,10 @@ func signin(input entity.UserInput) (*entity.UserIDAndPassword, error) {
 		Body:    "シェアオフィスへのご登録が完了しました。",
 	}.Send()
 
-	return &entity.UserIDAndPassword{
-		ID:       u.ID,
-		Password: hashedPassword,
+	return &entity.UserAuth{
+		ID:         u.ID,
+		Permission: u.Permission,
+		Password:   hashedPassword,
 	}, nil
 }
 
@@ -124,4 +127,16 @@ func failedAuthorization(c *gin.Context, code int, message string) {
 		"code":    code,
 		"message": message,
 	})
+}
+
+// AdminMiddleware check administrator authorization
+func AdminMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims := jwt.ExtractClaims(c)
+		if claims[util.IDENTITYKEY2].(string) != "admin" {
+			failedAuthorization(c, 400, "Invalid token")
+			return
+		}
+		c.Next()
+	}
 }

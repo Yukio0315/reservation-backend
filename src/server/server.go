@@ -56,11 +56,12 @@ func router() *gin.Engine {
 			u.PATCH("/username", userCtrl.UserNameChange)
 			u.PATCH("/email", userCtrl.EmailChange)
 		}
-		// admin := u.Group("admin")
-		// admin.Use(authMiddleware.MiddlewareFunc())
-		// {
-		// 	admin.DELETE("", eventCtrl.Delete)
-		// }
+
+		admin := auth.Group("/admin/:id")
+		admin.Use(middleware.AdminMiddleware())
+		{
+			admin.DELETE("/event", eventCtrl.Delete)
+		}
 	}
 
 	return r

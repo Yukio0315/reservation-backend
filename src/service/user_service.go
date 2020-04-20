@@ -49,14 +49,15 @@ func (s UserService) FindIDByEmail(email entity.Email) (entity.ID, error) {
 }
 
 // FindIDAndPasswordByEmail find a user auth information by email
-func (s UserService) FindIDAndPasswordByEmail(email entity.Email) (entity.UserIDAndPassword, error) {
+func (s UserService) FindIDAndPasswordByEmail(email entity.Email) (entity.UserAuth, error) {
 	u, err := s.findByEmail(email)
 	if err != nil {
-		return entity.UserIDAndPassword{}, err
+		return entity.UserAuth{}, err
 	}
-	return entity.UserIDAndPassword{
-		ID:       u.ID,
-		Password: u.Password,
+	return entity.UserAuth{
+		ID:         u.ID,
+		Password:   u.Password,
+		Permission: u.Permission,
 	}, nil
 }
 

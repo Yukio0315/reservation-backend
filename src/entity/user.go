@@ -25,6 +25,7 @@ type User struct {
 	UserName     UserName       `gorm:"varchar(20);not null"`
 	Email        Email          `gorm:"type:varchar(100);unique_index;not null"`
 	Password     HashedPassword `gorm:"not null"`
+	Permission   string         `gorm:"default:'user';not null"`
 	Reservations Reservations
 }
 
@@ -59,10 +60,11 @@ type NewUser struct {
 	Password PlainPassword
 }
 
-// UserIDAndPassword represent user id and password
-type UserIDAndPassword struct {
-	ID       ID             `json:"id" binding:"required"`
-	Password HashedPassword `json:"password" binding:"required"`
+// UserAuth is used for authentication
+type UserAuth struct {
+	ID         ID             `json:"id" binding:"required"`
+	Permission string         `json:"permission" binding:"required"`
+	Password   HashedPassword `json:"password" binding:"required"`
 }
 
 // UserNameInput represent user id and name

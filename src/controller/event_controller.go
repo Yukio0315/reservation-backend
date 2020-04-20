@@ -41,3 +41,7 @@ func (ec EventController) Show(c *gin.Context) {
 		c.JSON(200, events.GenerateDurations(reservedEventSlotIDs))
 	}
 }
+
+func (ec EventController) Delete(c *gin.Context) {
+	c.Status(200)
+}
