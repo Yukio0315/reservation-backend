@@ -23,7 +23,7 @@ func (r Reservation) findEventSlotIDsByReservation() (eventSlotIDs []ID) {
 	eventSlotIDsUint := []uint{}
 	for _, re := range r.ReservationEventSlots {
 		if re.ReservationID == r.ID {
-			eventSlotIDsUint = append(eventSlotIDsUint, uint(r.ID))
+			eventSlotIDsUint = append(eventSlotIDsUint, uint(re.EventSlotID))
 		}
 	}
 	uniqueIDs := util.UniqueID(eventSlotIDsUint)

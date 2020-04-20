@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"sort"
 	"time"
 
 	"github.com/Yukio0315/reservation-backend/src/util"
@@ -62,18 +63,25 @@ func (ess EventSlots) findEventSlotsByID(ids []ID) (eventSlots EventSlots) {
 }
 
 func (ess EventSlots) removeIDsFromIDs(ids1 []ID, ids2 []ID) (result []ID) {
-	uintIDs := []uint{}
+	iDs, uintIDs := []ID{}, []uint{}
 	for _, id2 := range ids2 {
 		for _, id1 := range ids1 {
 			if id1 != id2 {
-				uintIDs = append(uintIDs, uint(id1))
+				iDs = append(iDs, id1)
 			}
 		}
+		ids1 = iDs
+	}
+	for _, i := range iDs {
+		uintIDs = append(uintIDs, uint(i))
 	}
 	uniqueIDs := util.UniqueID(uintIDs)
 	for _, id := range uniqueIDs {
 		result = append(result, ID(id))
 	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i] < result[j]
+	})
 	return result
 }
 
