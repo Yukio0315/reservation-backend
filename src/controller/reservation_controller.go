@@ -74,10 +74,6 @@ func (rc ReservationController) Cancel(c *gin.Context) {
 		c.AbortWithError(400, err)
 		return
 	}
-	if googleEventID == "" {
-		c.AbortWithError(400, errors.New("invalid id was sent"))
-		return
-	}
 	if err := rc.gc.DeleteEvent(googleEventID); err != nil {
 		log.Print(err)
 	}
