@@ -74,7 +74,7 @@ func (s UserService) FindIDByEmailTx(tx *gorm.DB, email entity.Email) (entity.ID
 func (s UserService) FindByID(id entity.ID) (u entity.User, err error) {
 	db := db.Init()
 
-	if err = db.Where("id = ?", id).First(&u).Error; err != nil {
+	if err = db.Preload("Reservations").Where("id = ?", id).First(&u).Error; err != nil {
 		return entity.User{}, err
 	}
 	defer db.Close()

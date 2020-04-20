@@ -103,3 +103,14 @@ func (rs Reservations) FindEventSlotIDsByUserID(userID ID) (eventSlotIDs []ID) {
 	}
 	return eventSlotIDs
 }
+
+// IsReservable judge whether the duration is reservable or not
+func (rs Reservations) IsReservable(duration Duration) bool {
+	for _, r := range rs {
+		if (duration.Start.Equal(r.Start) || (duration.Start.After(r.Start) && duration.Start.Before(r.End))) ||
+			(duration.End.Equal(r.End) || (duration.End.Before(r.End) && duration.End.After(r.Start))) {
+			return false
+		}
+	}
+	return true
+}
