@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Yukio0315/reservation-backend/src/entity"
-	"github.com/Yukio0315/reservation-backend/src/util"
 	"github.com/joho/godotenv"
 	"google.golang.org/api/calendar/v3"
 )
@@ -22,7 +21,7 @@ func (gc GoogleCalendar) init() (srv *calendar.Service, calendarID string) {
 	if err != nil {
 		log.Fatal("Failed to connect google calendar client")
 	}
-	calendarID = util.EMAIL
+	calendarID = "primary"
 	return srv, calendarID
 }
 
@@ -57,4 +56,13 @@ func (gc GoogleCalendar) AddEvent(u entity.EmailAndName, d entity.Duration) (str
 	srv, calendarID := gc.init()
 	event, err := srv.Events.Insert(calendarID, event).Do()
 	return event.Id, err
+}
+
+// DeleteEvent delete event from calendar
+func (gc GoogleCalendar) DeleteEvent(eventID string) error {
+	srv, calendarID := gc.init()
+	if err := srv.Events.Delete(calendarID, eventID).Do(); err != nil {
+		return err
+	}
+	return nil
 }

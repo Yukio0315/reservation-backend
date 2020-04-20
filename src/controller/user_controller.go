@@ -22,11 +22,13 @@ func (uc UserController) Show(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	p, err := uc.s.FindUserProfileByID(id.ID)
 	if err != nil {
 		c.AbortWithError(404, err)
+		return
 	}
 	c.JSON(200, p)
 }
@@ -36,24 +38,29 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	passwords := entity.UserNewOldPasswords{}
 	if err := c.ShouldBindJSON(&passwords); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	u, err := uc.s.FindEmailAndPasswordByID(id.ID)
 	if err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword(u.Password, []byte(passwords.OldPassword)); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	if err := uc.s.UpdatePassword(id.ID, passwords.NewPassword); err != nil {
 		c.AbortWithStatus(404)
+		return
 	}
 	c.Status(200)
 
@@ -69,15 +76,18 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 	input := entity.UserInputMailPassword{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	id, err := uc.s.FindIDByEmail(input.Email)
 	if err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	if err := uc.s.UpdatePassword(id, input.Password); err != nil {
 		c.AbortWithStatus(404)
+		return
 	}
 	c.Status(200)
 
@@ -94,15 +104,18 @@ func (uc UserController) UserNameChange(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	input := entity.UserNameInput{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	if err := uc.s.UpdateUserNameByID(id.ID, input.UserName); err != nil {
 		c.AbortWithError(404, err)
+		return
 	}
 	c.Status(200)
 }
@@ -112,15 +125,18 @@ func (uc UserController) EmailChange(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	input := entity.UserEmail{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	if err := uc.s.UpdateEmailByID(id.ID, input.Email); err != nil {
 		c.AbortWithError(404, err)
+		return
 	}
 	c.Status(200)
 
@@ -136,16 +152,19 @@ func (uc UserController) Delete(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	input := entity.UserEmail{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 
 	storedID, err := uc.s.FindIDByEmail(input.Email)
 	if err != nil {
 		c.AbortWithError(400, err)
+		return
 	}
 	if id.ID != storedID {
 		c.AbortWithError(400, errors.New("invalid email"))
@@ -154,6 +173,7 @@ func (uc UserController) Delete(c *gin.Context) {
 
 	if err := uc.s.DeleteByID(id.ID); err != nil {
 		c.AbortWithError(404, err)
+		return
 	}
 	c.Status(200)
 

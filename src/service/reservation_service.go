@@ -95,14 +95,17 @@ func (rs ReservationService) createReservationEventSlot(tx *gorm.DB, id entity.I
 }
 
 // DeleteReservation delete reservations and reservation event slot by userId and reservationId
-func (rs ReservationService) DeleteReservation(userID entity.ID, reservationID entity.ID) (err error) {
+func (rs ReservationService) DeleteReservation(userID entity.ID, reservationID entity.ID) (string, error) {
 	db := db.Init()
 	reservation := entity.Reservation{}
-	if err = db.Unscoped().
+	if err := db.Unscoped().
 		Where("id = ? AND user_id = ?", reservationID, userID).
-		Delete(&reservation).
+		First(&reservation).
 		Error; err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	if err := db.Delete(&reservation).Error; err != nil {
+		return "", err
+	}
+	return reservation.GoogleEventID, nil
 }

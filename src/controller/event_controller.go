@@ -18,7 +18,8 @@ func (ec EventController) Show(c *gin.Context) {
 	ec.es.CreateModels()
 	userID := entity.UserID{}
 	if err := c.ShouldBindUri(&userID); err != nil {
-		c.JSON(400, err)
+		c.AbortWithError(400, err)
+		return
 	}
 
 	events, err := ec.es.FindAll()
