@@ -14,7 +14,7 @@ import (
 
 // UserController type
 type UserController struct {
-	s service.UserService
+	us service.UserService
 }
 
 // Show controlles user information & reservation
@@ -25,7 +25,7 @@ func (uc UserController) Show(c *gin.Context) {
 		return
 	}
 
-	p, err := uc.s.FindUserProfileByID(id.ID)
+	p, err := uc.us.FindUserProfileByID(id.ID)
 	if err != nil {
 		c.AbortWithError(404, err)
 		return
@@ -47,7 +47,7 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 		return
 	}
 
-	u, err := uc.s.FindEmailAndPasswordByID(id.ID)
+	u, err := uc.us.FindEmailAndPasswordByID(id.ID)
 	if err != nil {
 		c.AbortWithError(400, err)
 		return
@@ -58,7 +58,7 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 		return
 	}
 
-	if err := uc.s.UpdatePassword(id.ID, passwords.NewPassword); err != nil {
+	if err := uc.us.UpdatePassword(id.ID, passwords.NewPassword); err != nil {
 		c.AbortWithStatus(404)
 		return
 	}
@@ -79,13 +79,13 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 		return
 	}
 
-	id, err := uc.s.FindIDByEmail(input.Email)
+	id, err := uc.us.FindIDByEmail(input.Email)
 	if err != nil {
 		c.AbortWithError(400, err)
 		return
 	}
 
-	if err := uc.s.UpdatePassword(id, input.Password); err != nil {
+	if err := uc.us.UpdatePassword(id, input.Password); err != nil {
 		c.AbortWithStatus(404)
 		return
 	}
@@ -113,7 +113,7 @@ func (uc UserController) UserNameChange(c *gin.Context) {
 		return
 	}
 
-	if err := uc.s.UpdateUserNameByID(id.ID, input.UserName); err != nil {
+	if err := uc.us.UpdateUserNameByID(id.ID, input.UserName); err != nil {
 		c.AbortWithError(404, err)
 		return
 	}
@@ -134,7 +134,7 @@ func (uc UserController) EmailChange(c *gin.Context) {
 		return
 	}
 
-	if err := uc.s.UpdateEmailByID(id.ID, input.Email); err != nil {
+	if err := uc.us.UpdateEmailByID(id.ID, input.Email); err != nil {
 		c.AbortWithError(404, err)
 		return
 	}
@@ -161,7 +161,7 @@ func (uc UserController) Delete(c *gin.Context) {
 		return
 	}
 
-	storedID, err := uc.s.FindIDByEmail(input.Email)
+	storedID, err := uc.us.FindIDByEmail(input.Email)
 	if err != nil {
 		c.AbortWithError(400, err)
 		return
@@ -171,7 +171,7 @@ func (uc UserController) Delete(c *gin.Context) {
 		return
 	}
 
-	if err := uc.s.DeleteByID(id.ID); err != nil {
+	if err := uc.us.DeleteByID(id.ID); err != nil {
 		c.AbortWithError(404, err)
 		return
 	}

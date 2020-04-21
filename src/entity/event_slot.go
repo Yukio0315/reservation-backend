@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"sort"
 	"time"
 
 	"github.com/Yukio0315/reservation-backend/src/util"
@@ -33,6 +32,19 @@ func (es EventSlot) notFullEventSlotID() (id ID) {
 // EventSlots are slice of EventSlot
 type EventSlots []EventSlot
 
+// IsReservable judge whether it is reservable or not
+func (ess EventSlots) IsReservable() bool {
+	if len(ess) == 0 {
+		return false
+	}
+	for _, es := range ess {
+		if es.fullEventSlotID() != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 func (ess EventSlots) fullEventSlotIDs() (ids []ID) {
 	for _, es := range ess {
 		if es.fullEventSlotID() != 0 {
@@ -63,26 +75,37 @@ func (ess EventSlots) findEventSlotsByID(ids []ID) (eventSlots EventSlots) {
 }
 
 func (ess EventSlots) removeIDsFromIDs(ids1 []ID, ids2 []ID) (result []ID) {
-	iDs, uintIDs := []ID{}, []uint{}
-	for _, id2 := range ids2 {
-		for _, id1 := range ids1 {
-			if id1 != id2 {
-				iDs = append(iDs, id1)
+	duplicateIDs := ess.findDuplicates(ids1, ids2)
+	if len(duplicateIDs) == len(ids1) {
+		return []ID{}
+	}
+	if len(duplicateIDs) == 0 {
+		return ids1
+	}
+	return ess.filterNotDuplicate(ids1, duplicateIDs)
+}
+
+func (ess EventSlots) findDuplicates(ids1 []ID, ids2 []ID) (duplicateIDs []ID) {
+	for _, id1 := range ids1 {
+		for _, id2 := range ids2 {
+			if id1 == id2 {
+				duplicateIDs = append(duplicateIDs, id1)
+				continue
 			}
 		}
-		ids1 = iDs
 	}
-	for _, i := range iDs {
-		uintIDs = append(uintIDs, uint(i))
+	return duplicateIDs
+}
+
+func (ess EventSlots) filterNotDuplicate(ids1 []ID, ids2 []ID) []ID {
+	for _, id2 := range ids2 {
+		for i, id1 := range ids1 {
+			if id1 == id2 {
+				ids1 = append(ids1[:i], ids1[i+1:]...)
+			}
+		}
 	}
-	uniqueIDs := util.UniqueID(uintIDs)
-	for _, id := range uniqueIDs {
-		result = append(result, ID(id))
-	}
-	sort.Slice(result, func(i, j int) bool {
-		return result[i] < result[j]
-	})
-	return result
+	return ids1
 }
 
 func (ess EventSlots) generateDurationsExceptIDs(ids []ID) (ds Durations) {

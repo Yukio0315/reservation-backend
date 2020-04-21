@@ -32,3 +32,15 @@ func Init() *gorm.DB {
 
 	return db
 }
+
+func BeginTx() (*gorm.DB, error) {
+	db := Init()
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	return tx, tx.Error
+}

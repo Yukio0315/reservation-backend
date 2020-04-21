@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"log"
+
+	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
 	"github.com/gin-gonic/gin"
@@ -8,14 +11,15 @@ import (
 
 // EventController represent event
 type EventController struct {
-	rs  service.ReservationService
-	es  service.EventService
-	ess service.EventSlotService
+	rs service.ReservationService
+	es service.EventService
+	ts service.TransactionService
+	gc api.GoogleCalendar
 }
 
 // Show shows reservable events
 func (ec EventController) Show(c *gin.Context) {
-	ec.es.CreateModels()
+	ec.ts.CreateEventAndEventSlotAndReservationEventSlot()
 	userID := entity.UserID{}
 	if err := c.ShouldBindUri(&userID); err != nil {
 		c.AbortWithError(400, err)
@@ -42,6 +46,22 @@ func (ec EventController) Show(c *gin.Context) {
 	}
 }
 
+// Delete delete event and reservations
 func (ec EventController) Delete(c *gin.Context) {
+	duration := entity.Duration{}
+	if err := c.ShouldBindJSON(&duration); err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+
+	googleEventIDs, err := ec.ts.DeleteReservationAndEvent(duration)
+	if err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+
+	if err = ec.gc.DeleteEvents(googleEventIDs); err != nil {
+		log.Print(400, err)
+	}
 	c.Status(200)
 }

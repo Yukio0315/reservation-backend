@@ -12,9 +12,11 @@ import (
 
 // ReservationController is controller for reservations
 type ReservationController struct {
-	gc api.GoogleCalendar
-	su service.UserService
-	sr service.ReservationService
+	gc  api.GoogleCalendar
+	su  service.UserService
+	ess service.EventSlotService
+	sr  service.ReservationService
+	ts  service.TransactionService
 }
 
 // Add method add the reservation and add calendar
@@ -40,6 +42,15 @@ func (rc ReservationController) Add(c *gin.Context) {
 		c.AbortWithError(400, errors.New("invalid durations. Already reserved"))
 		return
 	}
+	eventSlots, err := rc.ess.FindByDuration(duration)
+	if err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+	if !eventSlots.IsReservable() {
+		c.AbortWithError(400, errors.New("invalid durations. No event exist"))
+		return
+	}
 
 	googleEventID, err := rc.gc.AddEvent(u.UserToEmailAndName(), duration)
 	if err != nil {
@@ -47,7 +58,7 @@ func (rc ReservationController) Add(c *gin.Context) {
 		return
 	}
 
-	err = rc.sr.CreateModels(id.ID, duration, googleEventID)
+	err = rc.ts.CreateReservationAndReservationEventSlot(id.ID, duration, googleEventID)
 	if err != nil {
 		c.AbortWithStatus(404)
 		return

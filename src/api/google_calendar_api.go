@@ -66,3 +66,14 @@ func (gc GoogleCalendar) DeleteEvent(eventID string) error {
 	}
 	return nil
 }
+
+// DeleteEvents batch delete events
+func (gc GoogleCalendar) DeleteEvents(eventIDs []string) error {
+	srv, calendarID := gc.init()
+	for _, eventID := range eventIDs {
+		if err := srv.Events.Delete(calendarID, eventID).Do(); err != nil {
+			return err
+		}
+	}
+	return nil
+}

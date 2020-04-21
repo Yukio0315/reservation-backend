@@ -61,16 +61,6 @@ func (s UserService) FindIDAndPasswordByEmail(email entity.Email) (entity.UserAu
 	}, nil
 }
 
-// FindIDByEmailTx find user id by email in the transaction
-func (s UserService) FindIDByEmailTx(tx *gorm.DB, email entity.Email) (entity.ID, error) {
-	u := entity.User{}
-	if err := tx.Where("email = ?", email).First(&u).Error; err != nil {
-		return 0, err
-	}
-
-	return u.ID, nil
-}
-
 // FindByID find users by ID
 func (s UserService) FindByID(id entity.ID) (u entity.User, err error) {
 	db := db.Init()
@@ -181,4 +171,12 @@ func (s UserService) DeleteByID(id entity.ID) (err error) {
 	defer db.Close()
 
 	return nil
+}
+
+func (s UserService) findIDByEmailTx(tx *gorm.DB, email entity.Email) (entity.ID, error) {
+	u := entity.User{}
+	if err := tx.Where("email = ?", email).First(&u).Error; err != nil {
+		return 0, err
+	}
+	return u.ID, nil
 }

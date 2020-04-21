@@ -3,6 +3,7 @@ package service
 import (
 	"time"
 
+	"github.com/Yukio0315/reservation-backend/src/db"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/util"
 	"github.com/jinzhu/gorm"
@@ -11,7 +12,20 @@ import (
 // EventSlotService is service for EventSlot
 type EventSlotService struct{}
 
-func (ess EventSlotService) upSertEventSlotsAndReservationEventSlots(tx *gorm.DB, start time.Time, end time.Time, eventID entity.ID, reservationID entity.ID) (err error) {
+// FindByDuration find event by duration
+func (ess EventSlotService) FindByDuration(duration entity.Duration) (eventSlots entity.EventSlots, err error) {
+	db := db.Init()
+	if err = db.Where("start >= ? AND start < ?", duration.Start, duration.End).
+		Preload("ReservationEventSlots").
+		Find(&eventSlots).Error; err != nil {
+		return entity.EventSlots{}, err
+	}
+	defer db.Close()
+
+	return eventSlots, nil
+}
+
+func (ess EventSlotService) upsertEventSlotsAndReservationEventSlotsTx(tx *gorm.DB, start time.Time, end time.Time, eventID entity.ID, reservationID entity.ID) (err error) {
 	tmpStart := start
 	for tmpStart.Before(end) {
 		eventSlot := entity.EventSlot{
@@ -35,7 +49,7 @@ func (ess EventSlotService) upSertEventSlotsAndReservationEventSlots(tx *gorm.DB
 	return nil
 }
 
-func (ess EventSlotService) findIDByStartTX(tx *gorm.DB, start time.Time) (id entity.ID, err error) {
+func (ess EventSlotService) findIDByStartTx(tx *gorm.DB, start time.Time) (id entity.ID, err error) {
 	eventSlot := entity.EventSlot{}
 	if err = tx.Where("start = ?", start).First(&eventSlot).Error; err != nil {
 		return id, err

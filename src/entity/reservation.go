@@ -56,6 +56,14 @@ type ReservationID struct {
 	ReservationID ID `json:"id" binding:"required"`
 }
 
+// GoogleEventIDs return googleEventIDs from reservations
+func (rs Reservations) GoogleEventIDs() (googleEventIDs []string) {
+	for _, r := range rs {
+		googleEventIDs = append(googleEventIDs, r.GoogleEventID)
+	}
+	return googleEventIDs
+}
+
 // FindReservationIDAndDuration return reservation id and duration for user
 func (rs Reservations) FindReservationIDAndDuration() (result []ReservationIDAndDuration) {
 	for _, r := range rs {
