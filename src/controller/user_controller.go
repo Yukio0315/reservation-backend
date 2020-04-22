@@ -6,6 +6,7 @@ import (
 	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
+	"github.com/Yukio0315/reservation-backend/src/template"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -64,8 +65,8 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 
 	go api.GmailContent{
 		Email:   u.Email,
-		Subject: "【シェアオフィス】パスワードの変更が完了しました",
-		Body:    "パスワードの変更が完了しました。",
+		Subject: template.CHANGE_PASSWORD_TITLE,
+		Body:    template.CHANGE_PASSWORD_BODY,
 	}.Send()
 }
 
@@ -91,8 +92,8 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 
 	go api.GmailContent{
 		Email:   input.Email,
-		Subject: "【シェアオフィス】パスワードのリセットが完了しました",
-		Body:    "パスワードのリセットが完了しました。",
+		Subject: template.RESET_PASSWORD_TITLE,
+		Body:    template.RESET_PASSWORD_BODY,
 	}.Send()
 
 }
@@ -142,8 +143,8 @@ func (uc UserController) EmailChange(c *gin.Context) {
 
 	go api.GmailContent{
 		Email:   input.Email,
-		Subject: "【シェアオフィス】Emailアドレスを変更しました",
-		Body:    "Emailアドレスを変更しました。",
+		Subject: template.CHANGE_EMAIL_TITLE,
+		Body:    template.CHANGE_EMAIL_BODY,
 	}.Send()
 }
 
@@ -179,7 +180,7 @@ func (uc UserController) Delete(c *gin.Context) {
 
 	go api.GmailContent{
 		Email:   input.Email,
-		Subject: "【シェアオフィス】アカウントを削除しました",
-		Body:    "アカウントを削除しました。\nまたのご利用をお待ちしております。",
+		Subject: template.DELETE_ACCOUNT_TITLE,
+		Body:    template.DELETE_ACCOUNT_BODY,
 	}.Send()
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
+	"github.com/Yukio0315/reservation-backend/src/template"
 	"github.com/Yukio0315/reservation-backend/src/util"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
@@ -100,8 +101,8 @@ func signin(input entity.UserInput) (*entity.UserAuth, error) {
 
 	go api.GmailContent{
 		Email:   input.Email,
-		Subject: "【シェアオフィス】ご登録ありがとうございます",
-		Body:    "シェアオフィスへのご登録が完了しました。",
+		Subject: template.SIGNIN_SUB,
+		Body:    template.SIGNIN_BODY,
 	}.Send()
 
 	return &entity.UserAuth{
