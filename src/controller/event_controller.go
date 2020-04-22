@@ -56,12 +56,12 @@ func (ec EventController) Delete(c *gin.Context) {
 
 	googleEventIDs, err := ec.ts.DeleteReservationAndEvent(duration)
 	if err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(404, err)
 		return
 	}
 
 	if err = ec.gc.DeleteEvents(googleEventIDs); err != nil {
-		log.Print(400, err)
+		log.Print(err)
 	}
-	c.Status(200)
+	c.Status(204)
 }

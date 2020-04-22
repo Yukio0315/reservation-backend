@@ -10,8 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//TODO: change status code
-
 // UserController type
 type UserController struct {
 	us service.UserService
@@ -49,7 +47,7 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 
 	u, err := uc.us.FindByID(id.ID)
 	if err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(404, err)
 		return
 	}
 
@@ -81,7 +79,7 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 
 	u, err := uc.us.FindByEmail(input.Email)
 	if err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(404, err)
 		return
 	}
 
@@ -138,7 +136,9 @@ func (uc UserController) EmailChange(c *gin.Context) {
 		c.AbortWithError(404, err)
 		return
 	}
-	c.Status(200)
+	c.JSON(200, entity.UserEmail{
+		Email: input.Email,
+	})
 
 	go api.GmailContent{
 		Email:   input.Email,
@@ -163,7 +163,7 @@ func (uc UserController) Delete(c *gin.Context) {
 
 	u, err := uc.us.FindByEmail(input.Email)
 	if err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(404, err)
 		return
 	}
 	if id.ID != u.ID {
@@ -175,7 +175,7 @@ func (uc UserController) Delete(c *gin.Context) {
 		c.AbortWithError(404, err)
 		return
 	}
-	c.Status(200)
+	c.Status(204)
 
 	go api.GmailContent{
 		Email:   input.Email,

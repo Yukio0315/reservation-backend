@@ -35,11 +35,11 @@ func (rc ReservationController) Add(c *gin.Context) {
 
 	u, err := rc.su.FindByID(id.ID)
 	if err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(404, err)
 		return
 	}
 	if !u.Reservations.IsReservable(duration) {
-		c.AbortWithError(400, errors.New("invalid durations. Already reserved"))
+		c.AbortWithError(409, errors.New("invalid durations. Already reserved"))
 		return
 	}
 	eventSlots, err := rc.ess.FindByDuration(duration)
@@ -48,22 +48,22 @@ func (rc ReservationController) Add(c *gin.Context) {
 		return
 	}
 	if !eventSlots.IsReservable() {
-		c.AbortWithError(400, errors.New("invalid durations. No event exist"))
+		c.AbortWithError(404, errors.New("invalid durations. No event exist"))
 		return
 	}
 
 	googleEventID, err := rc.gc.AddEvent(u.UserToEmailAndName(), duration)
 	if err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(500, err)
 		return
 	}
 
 	err = rc.ts.CreateReservationAndReservationEventSlot(id.ID, duration, googleEventID)
 	if err != nil {
-		c.AbortWithStatus(404)
+		c.AbortWithStatus(500)
 		return
 	}
-	c.Status(200)
+	c.Status(201)
 }
 
 // Cancel controller cancel reservation
@@ -82,11 +82,11 @@ func (rc ReservationController) Cancel(c *gin.Context) {
 
 	googleEventID, err := rc.sr.DeleteReservation(id.ID, reservationID.ReservationID)
 	if err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(404, err)
 		return
 	}
 	if err := rc.gc.DeleteEvent(googleEventID); err != nil {
 		log.Print(err)
 	}
-	c.Status(200)
+	c.Status(204)
 }
