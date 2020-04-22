@@ -53,13 +53,6 @@ type UserNewOldPasswords struct {
 	NewPassword PlainPassword `json:"newPassword" binding:"required"`
 }
 
-// NewUser represent new user
-type NewUser struct {
-	UserName UserName
-	Email    Email
-	Password PlainPassword
-}
-
 // UserAuth is used for authentication
 type UserAuth struct {
 	ID         ID             `json:"id" binding:"required"`
@@ -90,12 +83,6 @@ type UserInput struct {
 	Password PlainPassword `json:"password" binding:"required"`
 }
 
-// UserMailAndPassword represent user input
-type UserMailAndPassword struct {
-	Email    Email
-	Password HashedPassword
-}
-
 // UserInputMailPassword represent user input
 type UserInputMailPassword struct {
 	Email    Email         `json:"email" binding:"required"`
@@ -107,5 +94,6 @@ type UserProfile struct {
 	CreatedAt    time.Time                  `json:"createdAt"`
 	UserName     UserName                   `json:"userName"`
 	Email        Email                      `json:"email"`
+	Permission   string                     `json:"permission"`
 	Reservations []ReservationIDAndDuration `json:"reservations"`
 }

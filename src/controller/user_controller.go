@@ -47,7 +47,7 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 		return
 	}
 
-	u, err := uc.us.FindEmailAndPasswordByID(id.ID)
+	u, err := uc.us.FindByID(id.ID)
 	if err != nil {
 		c.AbortWithError(400, err)
 		return
@@ -79,13 +79,13 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 		return
 	}
 
-	id, err := uc.us.FindIDByEmail(input.Email)
+	u, err := uc.us.FindByEmail(input.Email)
 	if err != nil {
 		c.AbortWithError(400, err)
 		return
 	}
 
-	if err := uc.us.UpdatePassword(id, input.Password); err != nil {
+	if err := uc.us.UpdatePassword(u.ID, input.Password); err != nil {
 		c.AbortWithStatus(404)
 		return
 	}
@@ -161,12 +161,12 @@ func (uc UserController) Delete(c *gin.Context) {
 		return
 	}
 
-	storedID, err := uc.us.FindIDByEmail(input.Email)
+	u, err := uc.us.FindByEmail(input.Email)
 	if err != nil {
 		c.AbortWithError(400, err)
 		return
 	}
-	if id.ID != storedID {
+	if id.ID != u.ID {
 		c.AbortWithError(400, errors.New("invalid email"))
 		return
 	}

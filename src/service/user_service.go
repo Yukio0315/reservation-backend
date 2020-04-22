@@ -28,7 +28,7 @@ func (s UserService) CreateModel(userName entity.UserName, email entity.Email, p
 	return u, nil
 }
 
-func (s UserService) findByEmail(email entity.Email) (u entity.User, err error) {
+func (s UserService) FindByEmail(email entity.Email) (u entity.User, err error) {
 	db := db.Init()
 
 	if err = db.Where("email = ?", email).First(&u).Error; err != nil {
@@ -37,28 +37,6 @@ func (s UserService) findByEmail(email entity.Email) (u entity.User, err error) 
 	defer db.Close()
 
 	return u, nil
-}
-
-// FindIDByEmail find a user auth information by email
-func (s UserService) FindIDByEmail(email entity.Email) (entity.ID, error) {
-	u, err := s.findByEmail(email)
-	if err != nil {
-		return 0, err
-	}
-	return u.ID, nil
-}
-
-// FindIDAndPasswordByEmail find a user auth information by email
-func (s UserService) FindIDAndPasswordByEmail(email entity.Email) (entity.UserAuth, error) {
-	u, err := s.findByEmail(email)
-	if err != nil {
-		return entity.UserAuth{}, err
-	}
-	return entity.UserAuth{
-		ID:         u.ID,
-		Password:   u.Password,
-		Permission: u.Permission,
-	}, nil
 }
 
 // FindByID find users by ID
@@ -70,28 +48,6 @@ func (s UserService) FindByID(id entity.ID) (u entity.User, err error) {
 	}
 	defer db.Close()
 	return u, nil
-}
-
-// FindEmailByID return email by ID
-func (s UserService) FindEmailByID(id entity.ID) (entity.Email, error) {
-	u, err := s.FindByID(id)
-	if err != nil {
-		return "", err
-	}
-	return u.Email, nil
-}
-
-// FindEmailAndPasswordByID find a user password by id
-func (s UserService) FindEmailAndPasswordByID(id entity.ID) (entity.UserMailAndPassword, error) {
-	u, err := s.FindByID(id)
-	if err != nil {
-		return entity.UserMailAndPassword{}, err
-	}
-
-	return entity.UserMailAndPassword{
-		Email:    u.Email,
-		Password: u.Password,
-	}, nil
 }
 
 // FindUserProfileByID return user and reservation
