@@ -5,47 +5,58 @@ import (
 
 	"github.com/Yukio0315/reservation-backend/src/controller"
 	"github.com/Yukio0315/reservation-backend/src/middleware"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 // Init runs gin router
 func Init() {
-	r := router()
+	r := new()
+	r = router(r)
 	r.Run()
 }
 
-func router() *gin.Engine {
+func new() *gin.Engine {
 	port := os.Getenv("PORT")
 	r := gin.New()
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost"}
+
+	r.Use(cors.New(config))
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
 	if port == "" {
 		port = "8000"
 	}
+	return r
+}
+
+func router(r *gin.Engine) *gin.Engine {
 
 	authMiddleware := middleware.AuthMiddleware()
-
 	userCtrl := controller.UserController{}
 	eventCtrl := controller.EventController{}
 	reservationCtrl := controller.ReservationController{}
 
-	a := r.Group("/api")
-	a.POST("/signin", authMiddleware.LoginHandler)
+	a := r.Group("/v1")
+	a.POST("/users", authMiddleware.LoginHandler)
 	a.POST("/login", authMiddleware.LoginHandler)
 	a.PATCH("/reset-password", userCtrl.PasswordReset)
 
 	auth := a.Group("")
 	auth.Use(authMiddleware.MiddlewareFunc())
 	{
-		e := auth.Group("/event/:id")
+		e := auth.Group("/events/:id")
 		{
 			e.GET("", eventCtrl.Show)
 		}
-		r := auth.Group("/reservation/:id")
+
+		r := auth.Group("/reservations/:id")
 		{
-			r.POST("/", reservationCtrl.Add)
-			r.DELETE("/", reservationCtrl.Cancel)
+			r.POST("", reservationCtrl.Add)
+			r.DELETE("", reservationCtrl.Cancel)
 		}
 
 		u := auth.Group("/users/:id")
@@ -60,7 +71,7 @@ func router() *gin.Engine {
 		admin := auth.Group("/admin/:id")
 		admin.Use(middleware.AdminMiddleware())
 		{
-			admin.DELETE("/event", eventCtrl.Delete)
+			admin.DELETE("/events", eventCtrl.Delete)
 		}
 	}
 
