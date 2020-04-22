@@ -124,7 +124,7 @@ func isAuthorized(data interface{}, c *gin.Context) bool {
 }
 
 func failedAuthorization(c *gin.Context, code int, message string) {
-	c.JSON(code, gin.H{
+	c.AbortWithStatusJSON(code, gin.H{
 		"code":    code,
 		"message": message,
 	})
@@ -134,8 +134,8 @@ func failedAuthorization(c *gin.Context, code int, message string) {
 func AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims := jwt.ExtractClaims(c)
-		if claims[util.IDENTITYKEY2].(string) != "admin" {
-			failedAuthorization(c, 400, "Invalid token")
+		if claims[util.IDENTITYKEY2].(string) != util.ADMIN {
+			failedAuthorization(c, 403, "Invalid token. Access is not allowed")
 			return
 		}
 		c.Next()

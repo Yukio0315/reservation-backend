@@ -15,4 +15,6 @@ const (
 	EMAIL = "kurosunotai@gmail.com"
 	// IDENTITYKEY2 is identitykey for permission
 	IDENTITYKEY2 = "permission"
+	// ADMIN user
+	ADMIN = "admin"
 )
