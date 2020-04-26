@@ -66,7 +66,7 @@ func verifyCredential(c *gin.Context) (interface{}, error) {
 	if input.UserName == "" {
 		return login(input)
 	}
-	return signin(input)
+	return register(input)
 }
 
 func login(input entity.UserInput) (*entity.UserAuth, error) {
@@ -87,7 +87,7 @@ func login(input entity.UserInput) (*entity.UserAuth, error) {
 	}, nil
 }
 
-func signin(input entity.UserInput) (*entity.UserAuth, error) {
+func register(input entity.UserInput) (*entity.UserAuth, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
 	if err != nil {
 		return &entity.UserAuth{}, err
@@ -101,8 +101,8 @@ func signin(input entity.UserInput) (*entity.UserAuth, error) {
 
 	go api.GmailContent{
 		Email:   input.Email,
-		Subject: template.SIGNIN_SUB,
-		Body:    template.SIGNIN_BODY,
+		Subject: template.REGISTERSUB,
+		Body:    template.REGISTERBODY,
 	}.Send()
 
 	return &entity.UserAuth{

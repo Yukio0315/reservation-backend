@@ -42,8 +42,9 @@ func router(r *gin.Engine) *gin.Engine {
 
 	a := r.Group("/v1")
 	a.POST("/users", authMiddleware.LoginHandler)
-	a.POST("/login", authMiddleware.LoginHandler)
-	a.PATCH("/reset-password", userCtrl.PasswordReset)
+	a.POST("/sign-in", authMiddleware.LoginHandler)
+	a.POST("/reset-password", userCtrl.ReserveResetPassword)
+	a.PATCH("/reset-password/:uuid", userCtrl.PasswordReset)
 
 	auth := a.Group("")
 	auth.Use(authMiddleware.MiddlewareFunc())

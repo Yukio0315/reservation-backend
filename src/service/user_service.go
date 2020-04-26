@@ -28,6 +28,7 @@ func (s UserService) CreateModel(userName entity.UserName, email entity.Email, p
 	return u, nil
 }
 
+// FindByEmail find user by email
 func (s UserService) FindByEmail(email entity.Email) (u entity.User, err error) {
 	db := db.Init()
 

@@ -17,4 +17,10 @@ const (
 	IDENTITYKEY2 = "permission"
 	// ADMIN user
 	ADMIN = "admin"
+	// URLLIFETIME is lifetime of onetime url(hour)
+	URLLIFETIME = 3
+	// BASEURL is backend base url
+	BASEURL = "http://localhost:3000"
+	// OFFICENAME is name of the office
+	OFFICENAME = "シェアオフィス"
 )

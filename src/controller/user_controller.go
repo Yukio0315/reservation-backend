@@ -14,6 +14,7 @@ import (
 // UserController type
 type UserController struct {
 	us service.UserService
+	os service.OneTimeURLService
 }
 
 // Show controlles user information & reservation
@@ -65,8 +66,36 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 
 	go api.GmailContent{
 		Email:   u.Email,
-		Subject: template.CHANGE_PASSWORD_TITLE,
-		Body:    template.CHANGE_PASSWORD_BODY,
+		Subject: template.CHANGEPASSWORDTITLE,
+		Body:    template.CHANGEPASSWORDBODY,
+	}.Send()
+}
+
+// ReserveResetPassword is reservation for reset password. It create one time url and send email.
+func (uc UserController) ReserveResetPassword(c *gin.Context) {
+	input := entity.UserEmail{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+
+	u, err := uc.us.FindByEmail(input.Email)
+	if err != nil {
+		c.AbortWithError(404, err)
+		return
+	}
+
+	o, err := uc.os.Create(u.ID)
+	if err != nil {
+		c.AbortWithError(404, err)
+		return
+	}
+	c.Status(200)
+
+	go api.GmailContent{
+		Email:   input.Email,
+		Subject: template.ONETIMEURLTITLE,
+		Body:    template.OneTimeURLBody(o.QueryString),
 	}.Send()
 }
 
@@ -74,6 +103,16 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 func (uc UserController) PasswordReset(c *gin.Context) {
 	input := entity.UserInputMailPassword{}
 	if err := c.ShouldBindJSON(&input); err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+	query := entity.OneTimeQuery{}
+	if err := c.ShouldBindUri(&query); err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+
+	if err := uc.os.DeleteByUUID(query.UUID); err != nil {
 		c.AbortWithError(400, err)
 		return
 	}
@@ -92,10 +131,9 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 
 	go api.GmailContent{
 		Email:   input.Email,
-		Subject: template.RESET_PASSWORD_TITLE,
-		Body:    template.RESET_PASSWORD_BODY,
+		Subject: template.RESETPASSWORDTITLE,
+		Body:    template.RESETPASSWORDBODY,
 	}.Send()
-
 }
 
 // UserNameChange chaneg the user name
@@ -143,8 +181,8 @@ func (uc UserController) EmailChange(c *gin.Context) {
 
 	go api.GmailContent{
 		Email:   input.Email,
-		Subject: template.CHANGE_EMAIL_TITLE,
-		Body:    template.CHANGE_EMAIL_BODY,
+		Subject: template.CHANGEEMAILTITLE,
+		Body:    template.CHANGEEMAILBODY,
 	}.Send()
 }
 
@@ -180,7 +218,7 @@ func (uc UserController) Delete(c *gin.Context) {
 
 	go api.GmailContent{
 		Email:   input.Email,
-		Subject: template.DELETE_ACCOUNT_TITLE,
-		Body:    template.DELETE_ACCOUNT_BODY,
+		Subject: template.DELETEACCOUNTTITLE,
+		Body:    template.DELETEACCOUNTBODY,
 	}.Send()
 }
