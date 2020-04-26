@@ -66,6 +66,7 @@ func (s UserService) FindUserProfileByID(id entity.ID) (entity.UserProfile, erro
 		CreatedAt:    u.CreatedAt,
 		UserName:     u.UserName,
 		Email:        u.Email,
+		Permission:   u.Permission,
 		Reservations: u.Reservations.FindReservationIDAndDuration(),
 	}, nil
 }

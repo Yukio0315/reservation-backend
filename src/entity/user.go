@@ -24,9 +24,10 @@ type User struct {
 	UpdatedAt    time.Time
 	UserName     UserName       `gorm:"varchar(20);not null"`
 	Email        Email          `gorm:"type:varchar(100);unique_index;not null"`
-	Password     HashedPassword `gorm:"not null"`
+	Password     HashedPassword `gorm:"size:72;not null"`
 	Permission   string         `gorm:"default:'user';not null"`
 	Reservations Reservations
+	OneTimeURL   OneTimeURL
 }
 
 // UserToEmailAndName change user struct to EmailAndName struct

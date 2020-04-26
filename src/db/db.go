@@ -22,8 +22,9 @@ func Init() *gorm.DB {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&entity.User{}, &entity.Reservation{}, &entity.Event{}, &entity.EventSlot{}, &entity.ReservationEventSlot{}, &entity.Permission{})
+	db.AutoMigrate(&entity.User{}, &entity.Reservation{}, &entity.Event{}, &entity.EventSlot{}, &entity.ReservationEventSlot{}, &entity.Permission{}, &entity.OneTimeURL{})
 	db.Model(&entity.User{}).AddForeignKey("permission", "permissions(permission)", "RESTRICT", "RESTRICT")
+	db.Model(&entity.OneTimeURL{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 	db.Model(&entity.Reservation{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 	db.Model(&entity.EventSlot{}).AddForeignKey("event_id", "events(id)", "CASCADE", "CASCADE")
 	db.Model(&entity.ReservationEventSlot{}).

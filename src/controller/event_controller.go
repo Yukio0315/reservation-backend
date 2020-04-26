@@ -19,7 +19,7 @@ type EventController struct {
 
 // Show shows reservable events
 func (ec EventController) Show(c *gin.Context) {
-	ec.ts.CreateEventAndEventSlotAndReservationEventSlot()
+	ec.ts.CreateEventAndEventSlotAndReservationEventSlot() //TODO: cron job
 	userID := entity.UserID{}
 	if err := c.ShouldBindUri(&userID); err != nil {
 		c.AbortWithError(400, err)

@@ -21,7 +21,7 @@ func new() *gin.Engine {
 	r := gin.New()
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost"}
+	config.AllowOrigins = []string{"http://localhost:3000"}
 
 	r.Use(cors.New(config))
 	r.Use(gin.Logger())
