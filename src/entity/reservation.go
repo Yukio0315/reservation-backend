@@ -53,7 +53,7 @@ type ReservationIDAndDuration struct {
 
 // ReservationID represent reservation id
 type ReservationID struct {
-	ReservationID ID `json:"id" binding:"required"`
+	ReservationID ID `json:"id" binding:"required,numeric"`
 }
 
 // GoogleEventIDs return googleEventIDs from reservations

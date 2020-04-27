@@ -40,7 +40,7 @@ func (u User) UserToEmailAndName() EmailAndName {
 
 // UserID represent user id
 type UserID struct {
-	ID ID `uri:"id" binding:"required"`
+	ID ID `uri:"id" binding:"required,numeric"`
 }
 
 // UserPlainPassword represent user password
@@ -56,19 +56,19 @@ type UserNewOldPasswords struct {
 
 // UserAuth is used for authentication
 type UserAuth struct {
-	ID         ID             `json:"id" binding:"required"`
-	Permission string         `json:"permission" binding:"required"`
+	ID         ID             `json:"id" binding:"required,numeric"`
+	Permission string         `json:"permission" binding:"required,alpha,lowercase"`
 	Password   HashedPassword `json:"password" binding:"required"`
 }
 
 // UserNameInput represent user id and name
 type UserNameInput struct {
-	UserName UserName `json:"userName" binding:"required"`
+	UserName UserName `json:"userName" binding:"required,min=2,max=20"`
 }
 
 // UserEmail represent user id and email
 type UserEmail struct {
-	Email Email `json:"email" binding:"required"`
+	Email Email `json:"email" binding:"required,email"`
 }
 
 // EmailAndName represent email and name
@@ -79,15 +79,15 @@ type EmailAndName struct {
 
 // UserInput represent user input
 type UserInput struct {
-	UserName UserName      `json:"userName"`
-	Email    Email         `json:"email" binding:"required"`
-	Password PlainPassword `json:"password" binding:"required"`
+	UserName UserName      `json:"userName" binding:"required,min=2,max=20"`
+	Email    Email         `json:"email" binding:"required,email"`
+	Password PlainPassword `json:"password" binding:"required,min=5,max=30"`
 }
 
 // UserInputMailPassword represent user input
 type UserInputMailPassword struct {
-	Email    Email         `json:"email" binding:"required"`
-	Password PlainPassword `json:"password" binding:"required"`
+	Email    Email         `json:"email" binding:"required,email"`
+	Password PlainPassword `json:"password" binding:"required,min=5,max=30"`
 }
 
 // UserProfile represents user profile

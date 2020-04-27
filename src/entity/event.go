@@ -23,8 +23,8 @@ func (e Event) fullEventID() (id ID) {
 
 // Duration represent start and end time
 type Duration struct {
-	Start time.Time `json:"start"`
-	End   time.Time `json:"end"`
+	Start time.Time `json:"start" binding:"required,gt"`
+	End   time.Time `json:"end" binding:"required,gt"`
 }
 
 // Durations are slice of events or reservations

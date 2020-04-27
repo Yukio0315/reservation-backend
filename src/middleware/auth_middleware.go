@@ -5,10 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
-	"github.com/Yukio0315/reservation-backend/src/template"
 	"github.com/Yukio0315/reservation-backend/src/util"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
@@ -62,11 +60,7 @@ func verifyCredential(c *gin.Context) (interface{}, error) {
 	if err := c.ShouldBind(&input); err != nil {
 		return "", jwt.ErrMissingLoginValues
 	}
-
-	if input.UserName == "" {
-		return login(input)
-	}
-	return register(input)
+	return login(input)
 }
 
 func login(input entity.UserInput) (*entity.UserAuth, error) {
@@ -84,31 +78,6 @@ func login(input entity.UserInput) (*entity.UserAuth, error) {
 		ID:         storedUser.ID,
 		Password:   storedUser.Password,
 		Permission: storedUser.Permission,
-	}, nil
-}
-
-func register(input entity.UserInput) (*entity.UserAuth, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
-	if err != nil {
-		return &entity.UserAuth{}, err
-	}
-
-	us := service.UserService{}
-	u, err := us.CreateModel(input.UserName, input.Email, hashedPassword)
-	if err != nil {
-		return &entity.UserAuth{}, err
-	}
-
-	go api.GmailContent{
-		Email:   input.Email,
-		Subject: template.REGISTERSUB,
-		Body:    template.REGISTERBODY,
-	}.Send()
-
-	return &entity.UserAuth{
-		ID:         u.ID,
-		Permission: u.Permission,
-		Password:   hashedPassword,
 	}, nil
 }
 

@@ -13,5 +13,5 @@ type OneTimeURL struct {
 
 // OneTimeQuery is query string for one time url
 type OneTimeQuery struct {
-	UUID string `uri:"uuid" binding:"required"`
+	UUID string `uri:"uuid" binding:"required,uuid4"`
 }

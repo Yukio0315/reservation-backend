@@ -41,7 +41,7 @@ func router(r *gin.Engine) *gin.Engine {
 	reservationCtrl := controller.ReservationController{}
 
 	a := r.Group("/v1")
-	a.POST("/users", authMiddleware.LoginHandler)
+	a.POST("/users", userCtrl.Create)
 	a.POST("/sign-in", authMiddleware.LoginHandler)
 	a.POST("/reset-password", userCtrl.ReserveResetPassword)
 	a.PATCH("/reset-password/:uuid", userCtrl.PasswordReset)

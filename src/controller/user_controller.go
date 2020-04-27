@@ -33,6 +33,39 @@ func (uc UserController) Show(c *gin.Context) {
 	c.JSON(200, p)
 }
 
+// Create create new user
+func (uc UserController) Create(c *gin.Context) {
+	input := entity.UserInput{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
+	if err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+
+	us := service.UserService{}
+	u, err := us.CreateModel(input.UserName, input.Email, hashedPassword)
+	if err != nil {
+		c.AbortWithError(404, err)
+		return
+	}
+
+	go api.GmailContent{
+		Email:   input.Email,
+		Subject: template.REGISTERSUB,
+		Body:    template.REGISTERBODY,
+	}.Send()
+
+	c.JSON(201, entity.UserAuth{
+		ID:         u.ID,
+		Permission: u.Permission,
+		Password:   hashedPassword,
+	})
+}
+
 // PasswordChange controls updating password
 func (uc UserController) PasswordChange(c *gin.Context) {
 	id := entity.UserID{}
