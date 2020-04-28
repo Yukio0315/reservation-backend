@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -31,6 +32,7 @@ func AuthMiddleware() *jwt.GinJWTMiddleware {
 		Authenticator:   verifyCredential,
 		Authorizator:    isAuthorized,
 		Unauthorized:    failedAuthorization,
+		LoginResponse:   loginResponse,
 	})
 
 	if err != nil {
@@ -60,7 +62,13 @@ func verifyCredential(c *gin.Context) (interface{}, error) {
 	if err := c.ShouldBind(&input); err != nil {
 		return "", jwt.ErrMissingLoginValues
 	}
-	return login(input)
+	userAuth, err := login(input)
+	if err != nil {
+		return "", jwt.ErrEmptyParamToken
+	}
+	c.Set("id", userAuth.ID)
+	c.Set("permission", userAuth.Permission)
+	return userAuth, err
 }
 
 func login(input entity.UserInputMailPassword) (*entity.UserAuth, error) {
@@ -79,6 +87,19 @@ func login(input entity.UserInputMailPassword) (*entity.UserAuth, error) {
 		Password:   storedUser.Password,
 		Permission: storedUser.Permission,
 	}, nil
+}
+
+func loginResponse(c *gin.Context, code int, token string, expire time.Time) {
+	id, _ := c.Get("id")
+	permission, _ := c.Get("permission")
+	c.JSON(http.StatusOK,
+		gin.H{
+			"code":       http.StatusOK,
+			"token":      token,
+			"expire":     expire.Format(time.RFC3339),
+			"id":         id,
+			"permission": permission,
+		})
 }
 
 func isAuthorized(data interface{}, c *gin.Context) bool {
@@ -104,7 +125,7 @@ func AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims := jwt.ExtractClaims(c)
 		if claims[util.IDENTITYKEY2].(string) != util.ADMIN {
-			failedAuthorization(c, 403, "Invalid token. Access is not allowed")
+			failedAuthorization(c, http.StatusForbidden, "Invalid token. Access is not allowed")
 			return
 		}
 		c.Next()

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
@@ -22,27 +23,27 @@ func (ec EventController) Show(c *gin.Context) {
 	ec.ts.CreateEventAndEventSlotAndReservationEventSlot() //TODO: cron job
 	userID := entity.UserID{}
 	if err := c.ShouldBindUri(&userID); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	events, err := ec.es.FindAll()
 	if err != nil {
-		c.AbortWithStatus(404)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
 	reservations, err := ec.rs.FindByUserID(userID.ID)
 	if err != nil {
-		c.AbortWithStatus(404)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
 	if len(events.FullEventIDs()) == 0 && len(reservations) == 0 {
-		c.JSON(200, events.MakeDurations())
+		c.JSON(http.StatusOK, events.MakeDurations())
 	} else {
 		reservedEventSlotIDs := reservations.FindEventSlotIDsByUserID(userID.ID)
-		c.JSON(200, events.GenerateDurations(reservedEventSlotIDs))
+		c.JSON(http.StatusOK, events.GenerateDurations(reservedEventSlotIDs))
 	}
 }
 
@@ -50,18 +51,18 @@ func (ec EventController) Show(c *gin.Context) {
 func (ec EventController) Delete(c *gin.Context) {
 	duration := entity.Duration{}
 	if err := c.ShouldBindJSON(&duration); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	googleEventIDs, err := ec.ts.DeleteReservationAndEvent(duration)
 	if err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
 	if err = ec.gc.DeleteEvents(googleEventIDs); err != nil {
 		log.Print(err)
 	}
-	c.Status(204)
+	c.Status(http.StatusNoContent)
 }

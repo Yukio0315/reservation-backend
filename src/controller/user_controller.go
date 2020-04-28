@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
@@ -21,35 +22,35 @@ type UserController struct {
 func (uc UserController) Show(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	p, err := uc.us.FindUserProfileByID(id.ID)
 	if err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	c.JSON(200, p)
+	c.JSON(http.StatusOK, p)
 }
 
 // Create create new user
 func (uc UserController) Create(c *gin.Context) {
 	input := entity.UserInput{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
 	if err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	us := service.UserService{}
 	u, err := us.CreateModel(input.UserName, input.Email, hashedPassword)
 	if err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
@@ -59,7 +60,7 @@ func (uc UserController) Create(c *gin.Context) {
 		Body:    template.REGISTERBODY,
 	}.Send()
 
-	c.JSON(201, entity.UserAuth{
+	c.JSON(http.StatusCreated, entity.UserAuth{
 		ID:         u.ID,
 		Permission: u.Permission,
 		Password:   hashedPassword,
@@ -70,32 +71,32 @@ func (uc UserController) Create(c *gin.Context) {
 func (uc UserController) PasswordChange(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	passwords := entity.UserNewOldPasswords{}
 	if err := c.ShouldBindJSON(&passwords); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	u, err := uc.us.FindByID(id.ID)
 	if err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword(u.Password, []byte(passwords.OldPassword)); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if err := uc.us.UpdatePassword(id.ID, passwords.NewPassword); err != nil {
-		c.AbortWithStatus(404)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	c.Status(200)
+	c.Status(http.StatusOK)
 
 	go api.GmailContent{
 		Email:   u.Email,
@@ -108,22 +109,22 @@ func (uc UserController) PasswordChange(c *gin.Context) {
 func (uc UserController) ReserveResetPassword(c *gin.Context) {
 	input := entity.UserEmail{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	u, err := uc.us.FindByEmail(input.Email)
 	if err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
 	o, err := uc.os.Create(u.ID)
 	if err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	c.Status(200)
+	c.Status(http.StatusOK)
 
 	go api.GmailContent{
 		Email:   input.Email,
@@ -136,31 +137,31 @@ func (uc UserController) ReserveResetPassword(c *gin.Context) {
 func (uc UserController) PasswordReset(c *gin.Context) {
 	input := entity.UserInputMailPassword{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	query := entity.OneTimeQuery{}
 	if err := c.ShouldBindUri(&query); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if err := uc.os.DeleteByUUID(query.UUID); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	u, err := uc.us.FindByEmail(input.Email)
 	if err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
 	if err := uc.us.UpdatePassword(u.ID, input.Password); err != nil {
-		c.AbortWithStatus(404)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	c.Status(200)
+	c.Status(http.StatusOK)
 
 	go api.GmailContent{
 		Email:   input.Email,
@@ -173,42 +174,42 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 func (uc UserController) UserNameChange(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	input := entity.UserNameInput{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if err := uc.us.UpdateUserNameByID(id.ID, input.UserName); err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	c.Status(200)
+	c.Status(http.StatusOK)
 }
 
 // EmailChange change the user email
 func (uc UserController) EmailChange(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	input := entity.UserEmail{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if err := uc.us.UpdateEmailByID(id.ID, input.Email); err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	c.JSON(200, entity.UserEmail{
+	c.JSON(http.StatusOK, entity.UserEmail{
 		Email: input.Email,
 	})
 
@@ -223,31 +224,31 @@ func (uc UserController) EmailChange(c *gin.Context) {
 func (uc UserController) Delete(c *gin.Context) {
 	id := entity.UserID{}
 	if err := c.ShouldBindUri(&id); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	input := entity.UserEmail{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithError(400, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	u, err := uc.us.FindByEmail(input.Email)
 	if err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 	if id.ID != u.ID {
-		c.AbortWithError(400, errors.New("invalid email"))
+		c.AbortWithError(http.StatusNotFound, errors.New("invalid email"))
 		return
 	}
 
 	if err := uc.us.DeleteByID(id.ID); err != nil {
-		c.AbortWithError(404, err)
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	c.Status(204)
+	c.Status(http.StatusNoContent)
 
 	go api.GmailContent{
 		Email:   input.Email,
