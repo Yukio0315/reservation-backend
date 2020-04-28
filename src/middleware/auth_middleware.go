@@ -56,14 +56,14 @@ func handleIdentity(c *gin.Context) interface{} {
 }
 
 func verifyCredential(c *gin.Context) (interface{}, error) {
-	var input entity.UserInput
+	var input entity.UserInputMailPassword
 	if err := c.ShouldBind(&input); err != nil {
 		return "", jwt.ErrMissingLoginValues
 	}
 	return login(input)
 }
 
-func login(input entity.UserInput) (*entity.UserAuth, error) {
+func login(input entity.UserInputMailPassword) (*entity.UserAuth, error) {
 	us := service.UserService{}
 	storedUser, err := us.FindByEmail(input.Email)
 	if err != nil {
