@@ -19,8 +19,8 @@ type GmailContent struct {
 }
 
 // Send send gmail
-func (e GmailContent) Send() {
-	if err := godotenv.Load(); err != nil {
+func (e GmailContent) Send() (err error) {
+	if err = godotenv.Load(); err != nil {
 		panic("failed to load .env file")
 	}
 
@@ -43,6 +43,7 @@ func (e GmailContent) Send() {
 
 	_, err = srv.Users.Messages.Send(util.EMAIL, &message).Do()
 	if err != nil {
-		log.Print("err")
+		return err
 	}
+	return nil
 }

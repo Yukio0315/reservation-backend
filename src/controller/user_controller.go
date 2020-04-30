@@ -128,11 +128,14 @@ func (uc UserController) ReserveResetPassword(c *gin.Context) {
 	}
 	c.Status(http.StatusOK)
 
-	go api.GmailContent{
+	err = api.GmailContent{
 		Email:   input.Email,
 		Subject: template.ONETIMEURLTITLE,
 		Body:    template.OneTimeURLBody(o.QueryString),
 	}.Send()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
 }
 
 // PasswordReset controls resetting password
