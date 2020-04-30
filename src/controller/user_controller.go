@@ -137,7 +137,7 @@ func (uc UserController) ReserveResetPassword(c *gin.Context) {
 
 // PasswordReset controls resetting password
 func (uc UserController) PasswordReset(c *gin.Context) {
-	input := entity.UserInputMailPassword{}
+	input := entity.UserPlainPassword{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -148,25 +148,24 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 		return
 	}
 
-	if err := uc.os.DeleteByUUID(query.UUID); err != nil {
+	u, o, err := uc.os.FindUserByQueryString(query.UUID)
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, err)
+	}
+
+	if err := uc.os.Delete(o); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	u, err := uc.us.FindByEmail(input.Email)
-	if err != nil {
-		c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-
-	if err := uc.us.UpdatePassword(u.ID, input.Password); err != nil {
+	if err := uc.us.UpdatePassword(u.ID, input.PlainPassword); err != nil {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	c.Status(http.StatusOK)
 
 	go api.GmailContent{
-		Email:   input.Email,
+		Email:   u.Email,
 		Subject: template.RESETPASSWORDTITLE,
 		Body:    template.RESETPASSWORDBODY,
 	}.Send()
