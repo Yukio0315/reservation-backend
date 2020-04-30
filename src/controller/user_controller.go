@@ -3,11 +3,13 @@ package controller
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/Yukio0315/reservation-backend/src/api"
 	"github.com/Yukio0315/reservation-backend/src/entity"
 	"github.com/Yukio0315/reservation-backend/src/service"
 	"github.com/Yukio0315/reservation-backend/src/template"
+	"github.com/Yukio0315/reservation-backend/src/util"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -168,6 +170,28 @@ func (uc UserController) PasswordReset(c *gin.Context) {
 		Subject: template.RESETPASSWORDTITLE,
 		Body:    template.RESETPASSWORDBODY,
 	}.Send()
+}
+
+// CheckUUID controls resetting password
+func (uc UserController) CheckUUID(c *gin.Context) {
+	query := entity.OneTimeQuery{}
+	if err := c.ShouldBindUri(&query); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	o, err := uc.os.FindByQueryString(query.UUID)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if o.CreatedAt.After(time.Now().Add(time.Hour * util.URLLIFETIME)) {
+		c.AbortWithError(http.StatusNotFound, errors.New("url was expired"))
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 // UserNameChange chaneg the user name

@@ -44,6 +44,7 @@ func router(r *gin.Engine) *gin.Engine {
 	a.POST("/users", userCtrl.Create)
 	a.POST("/sign-in", authMiddleware.LoginHandler)
 	a.POST("/reset-password", userCtrl.ReserveResetPassword)
+	a.GET("/reset-password/:uuid", userCtrl.CheckUUID)
 	a.PATCH("/reset-password/:uuid", userCtrl.PasswordReset)
 
 	auth := a.Group("")

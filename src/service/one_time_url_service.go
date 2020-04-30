@@ -27,6 +27,20 @@ func (os OneTimeURLService) Create(userID entity.ID) (o entity.OneTimeURL, err e
 	return o, nil
 }
 
+// FindByQueryString create OneTimeURL by userID
+func (os OneTimeURLService) FindByQueryString(UUID string) (o entity.OneTimeURL, err error) {
+	db := db.Init()
+
+	o = entity.OneTimeURL{}
+
+	if err = db.Where("query_string = ?", UUID).First(&o).Error; err != nil {
+		return entity.OneTimeURL{}, err
+	}
+	defer db.Close()
+
+	return o, nil
+}
+
 // DeleteByUUID delete OneTimeURL. When it is out of lifetime, it returns error.
 func (os OneTimeURLService) DeleteByUUID(uuid string) error {
 	db := db.Init()
