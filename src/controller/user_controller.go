@@ -126,7 +126,6 @@ func (uc UserController) ReserveResetPassword(c *gin.Context) {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	c.Status(http.StatusOK)
 
 	err = api.GmailContent{
 		Email:   input.Email,
@@ -135,7 +134,9 @@ func (uc UserController) ReserveResetPassword(c *gin.Context) {
 	}.Send()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
+	c.Status(http.StatusOK)
 }
 
 // PasswordReset controls resetting password
