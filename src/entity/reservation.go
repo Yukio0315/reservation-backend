@@ -46,9 +46,9 @@ type ReservationUserAndTime struct {
 
 // ReservationIDAndDuration represent reservation information for users
 type ReservationIDAndDuration struct {
-	ID    ID
-	Start time.Time
-	End   time.Time
+	ID    ID        `json:"id"`
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
 }
 
 // ReservationID represent reservation id
