@@ -114,23 +114,27 @@ func (ess EventSlots) generateDurationsExceptIDs(ids []ID) (ds Durations) {
 		return nil
 	}
 	d := Duration{}
-	minStart, maxStart, tmp := time.Time{}, time.Time{}, time.Time{}
-	for _, es := range eventSlots {
+	minStart, tmp := time.Time{}, time.Time{}
+	for i, es := range eventSlots {
 		if minStart.IsZero() {
-			minStart, maxStart, tmp = es.Start, es.Start, es.Start
+			minStart, tmp = es.Start, es.Start
 		}
 		if es.Start.Equal(tmp) {
-			maxStart = es.Start
 			tmp = es.Start.Add(time.Hour * util.INTERVAL)
 			d = Duration{
 				Start: minStart,
-				End:   maxStart.Add(time.Hour * util.INTERVAL),
+				End:   tmp,
+			}
+		} else if i == len(eventSlots)-1 {
+			ds = append(ds, d)
+			d = Duration{
+				Start: es.Start,
+				End:   es.Start.Add(time.Hour * util.INTERVAL),
 			}
 		} else {
 			ds = append(ds, d)
-			minStart = time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
-			maxStart = time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
-			tmp = time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
+			minStart = es.Start
+			tmp = es.Start.Add(time.Hour * util.INTERVAL)
 		}
 	}
 	ds = append(ds, d)
