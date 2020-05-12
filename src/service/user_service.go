@@ -118,7 +118,7 @@ func (s UserService) UpdateEmailByID(id entity.ID, email entity.Email) (err erro
 	return nil
 }
 
-// DeleteByID update email by ID
+// DeleteByID delete user by ID
 func (s UserService) DeleteByID(id entity.ID) (err error) {
 	db := db.Init()
 
